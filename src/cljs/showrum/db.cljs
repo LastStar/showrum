@@ -2,7 +2,8 @@
   (:require [datascript.core :as d]))
 
 (def conn
-  (d/create-conn))
+  (d/create-conn
+   {:slide/items {:db/cardinality :db.cardinality/many}}))
 
 (def deck
   [{:db/id -1
@@ -15,7 +16,12 @@
     :slide/order 2
     :slide/type :type/bullets
     :slide/title "Organization"
-    :slide/items ["First" "Second"]}])
+    :slide/items ["AM" "PM"]}
+   {:db/id -4
+    :slide/order 3
+    :slide/type :type/bullets
+    :slide/title "AM"
+    :slide/items ["Theory" "Story"]}])
 
 (defn init
   "Initializes the db"
@@ -35,6 +41,20 @@
       [?e :slide/title ?st]]
     @conn)))
 
+(defn slide-by-order
+  "Returns slide with given order"
+  [order]
+  (first
+   (d/q
+    '[:find ?e ?order ?sy ?st
+      :in $ ?order
+      :where
+      [?e :slide/order ?order]
+      [?e :slide/type ?sy]
+      [?e :slide/title ?st]]
+    @conn
+    order)))
+
 (defn items-for
   "Returns all items for slide"
   [id]
@@ -45,7 +65,6 @@
      [?id :slide/items ?si]]
    @conn id))
 
-[?e :slide/items ?si]
 (defn author
   "Returns deck author"
   []

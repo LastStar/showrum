@@ -2,9 +2,10 @@
   (:require [rum.core :as rum]
             [showrum.db :as db]))
 
-(rum/defc slides []
+(rum/defc slides [current-slide]
+  (js/console.log (db/slide-by-order 1))
   [:div
-   (for [[id order type title] (db/slides)]
+   (let [[id order type title] (db/slide-by-order current-slide)]
      (case type
        :type/header
        [:div.slide.header
@@ -18,11 +19,24 @@
          (for [item (db/items-for id)]
            [:li item])]]))])
 
-(rum/defc deck []
-  (js/console.log (db/items-for 3))
-  [:div.deck
-   (slides)
-   [:footer (db/author)]])
+(rum/defcs deck < (rum/local 1 ::current-slide)
+  [state]
+  (js/console.log (db/slides))
+  (let [current-slide (::current-slide state)
+        slides-count (count (db/slides))]
+    [:div.deck
+     (slides @current-slide)
+     [:nav
+      (when (> @current-slide 1)
+        [:a.f2
+         {:on-click #(swap! current-slide dec)}
+         "<"])
+      (when (< @current-slide slides-count)
+        [:a.f2
+         {:on-click #(swap! current-slide inc)}
+         ">"])
+      [:span (str @current-slide "/" slides-count)]]
+     [:footer (db/author)]]))
 
 (defn init []
   (db/init)

@@ -22,9 +22,8 @@
       [:div.deck
        [:div.slide.header
         [:h2.title
-         {:position :absolute
-          :top "36vh"
-          :left "5vw"}]
+         {:margin-top "36vh"
+          :margin-left "5vw"}]
         [:h3.author
          {:position :absolute
           :top "47vh"
@@ -32,6 +31,13 @@
        [:footer
         {:position :absolute
          :bottom "3vh"
-         :right "2vw"}]]]
+         :right "2vw"}]
+       [:nav
+        {:position :absolute
+         :top "1vh"
+         :right "2vw"}
+        [:a
+         {:display :inline-block
+          :padding "0 1rem"}]]]]
      [:h1.f4
       {:color :white}])))
