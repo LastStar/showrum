@@ -3,11 +3,12 @@
 
 (def conn
   (d/create-conn
-   {:slide/items {:db/cardinality :db.cardinality/many}}))
+   {:slide/bullets {:db/cardinality :db.cardinality/many}}))
 
-(def deck
+(def data
   [{:db/id -1
-    :deck/author  "Josef \"pepe\" Pospíšil"}
+    :deck/author  "Josef \"pepe\" Pospíšil"
+    :deck/date "21. - 25. 11. 2016"}
    {:db/id -2
     :slide/order 1
     :slide/type :type/header
@@ -16,17 +17,12 @@
     :slide/order 2
     :slide/type :type/bullets
     :slide/title "Organization"
-    :slide/items ["AM" "PM"]}
+    :slide/bullets ["AM" "PM"]}
    {:db/id -4
     :slide/order 3
     :slide/type :type/bullets
     :slide/title "AM"
-    :slide/items ["Theory" "Story"]}])
-
-(defn init
-  "Initializes the db"
-  []
-  (d/transact! conn deck))
+    :slide/bullets ["Theory" "Story"]}])
 
 (defn slides
   "Returns all slides"
@@ -55,21 +51,27 @@
     @conn
     order)))
 
-(defn items-for
-  "Returns all items for slide"
+(defn bullets-for
+  "Returns all bullets for slide"
   [id]
   (d/q
    '[:find ?si
      :in $ ?id
      :where
-     [?id :slide/items ?si]]
+     [?id :slide/bullets ?si]]
    @conn id))
 
-(defn author
-  "Returns deck author"
+(defn deck
+  "Returns deck with author and date"
   []
-  (d/q
-   '[:find ?da
-     :where
-     [?e :deck/author ?da]]
-   @conn))
+  (first (d/q
+          '[:find ?da ?dd
+            :where
+            [?e :deck/author ?da]
+            [?e :deck/date ?dd]]
+          @conn)))
+
+(defn init
+  "Initializes the db"
+  []
+  (when-not (deck) (d/transact! conn data)))

@@ -9,6 +9,7 @@
                  [weasel                    "0.7.0"      :scope "test"]
                  [org.clojure/clojurescript "1.9.293"]
                  [rum "0.10.7"]
+                 [rum-mdl "0.2.0"]
                  [datascript "0.15.4"]
                  [binaryage/devtools "0.8.3" :scope "test"]
                  [binaryage/dirac "0.8.4" :scope "test"]
@@ -25,8 +26,11 @@
 (deftask build []
   (comp (speak)
         (cljs)
+        (sift :add-jar {'cljsjs/material #".*.css$"})
+        (sift :move {#".*/material.inc.css"     "material.inc.css"
+                     #".*/material.min.inc.css" "material.min.inc.css"})
         (garden :styles-var 'showrum.styles/screen
-:output-to "css/garden.css")))
+                :output-to "css/garden.css")))
 
 (deftask run []
   (comp (serve)
@@ -37,7 +41,7 @@
 
 (deftask production []
   (task-options! cljs {:optimizations :advanced}
-                      garden {:pretty-print false})
+                 garden {:pretty-print false})
   identity)
 
 (deftask development []
@@ -50,5 +54,3 @@
   []
   (comp (development)
         (run)))
-
-

@@ -5,39 +5,56 @@
 (defstyles screen
   (let [body (rule :body)]
     (body
-     {:font-family "Helvetica Neue"
-      :font-size   "16px"
-      :line-height 1.5
-      :background "linear-gradient(to left, #76b852 , #8DC26F)"
-      :padding "0 1vw"
+     {:background "linear-gradient(to left, hsla(0, 0%, 97%, 1) , hsl(0, 0%, 95%))"
       :color "hsl(0, 0%, 30%)"}
-     [:div#container
-      {:position :absolute
-       :top "5vh"
-       :left "3vw"
-       :padding "0 1rem"
-       :height "90vh"
-       :width "90vw"
-       :background-image "linear-gradient(to top, #F4F4F4 0%, #DFDEDC 100%)"}
-      [:div.deck
-       [:div.slide.header
-        [:h2.title
-         {:margin-top "36vh"
-          :margin-left "5vw"}]
-        [:h3.author
-         {:position :absolute
-          :top "47vh"
-          :left "5vw"}]]
-       [:footer
-        {:position :absolute
-         :bottom "3vh"
-         :right "2vw"}]
-       [:nav
-        {:position :absolute
-         :top "1vh"
-         :right "2vw"}
-        [:a
-         {:display :inline-block
-          :padding "0 1rem"}]]]]
-     [:h1.f4
-      {:color :white}])))
+     [:.page
+      [:nav
+       {:display :flex
+        :justify-content :space-between
+        :align-items :center
+        :position :absolute
+        :top "1vh"
+        :right "2vw"
+        :padding "0.5rem"
+        :width "10rem"
+        :border-radius "0.25rem"
+        :background "hsl(0, 0%, 90%)"
+        :transition [[:all "1s"]]
+        :transform "scale(0.25)"
+        :transform-origin [[:top :right]]
+        :opacity 0.25
+        :z-index 10}
+       [:&.hovered
+        {:opacity 1
+         :transition [[:all "250ms"]]
+         :transform "scale(1)"}]
+       [:button
+        {:opacity 0.25}
+        [:&.active
+         {:opacity 1}]]
+       [:span.counter
+        {:font-size "1.44rem"
+         :font-weight :bold}]]
+      [:.deck
+       {:position :absolute
+        :top 0
+        :left 0
+        :width "100vw"
+        :height "100vh"}
+       [:.slide
+        {:margin "10vh 10vw"
+         :height "80vh"
+         :display :flex
+         :flex-direction :column
+         :justify-content :space-around}
+        [:&.bullets
+         [:ul>li
+          {:font-size "2.0736rem"
+           :line-height "2.985rem"}]]]]
+      [:footer
+       {:display :flex
+        :justify-content :space-between
+        :position :absolute
+        :bottom "1vh"
+        :right "2vw"
+        :width "30vw"}]])))
