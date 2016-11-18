@@ -66,14 +66,15 @@
                         (reset! timer (.setTimeout js/window #(reset! hovered false) 2000)))}
      [:nav.decks
       (for [[id _ title] decks]
-        (mdl/button
+        [:div
+         {:key id}
+         (mdl/button
          {:mdl      [:ripple]
-          :key      id
           :disabled (= (rum/react current-deck) id)
           :on-click (fn [e]
                       (reset! current-slide 1)
                       (reset! current-deck id))}
-         title))]
+         title)])]
      [:div.counter (str (rum/react current-slide) " of " slides-count)]
      [:nav.slides
       (let [active (and (> (rum/react current-slide) 1) :active)]

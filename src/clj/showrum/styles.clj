@@ -29,8 +29,7 @@
           {:opacity [[1 :!important]]
            :transition [[:opacity "250ms"]]}]
          [:div.counter
-          {:font-family "\"Roboto\", \"Helvetica\", \"Arial\", sans-serif"
-           :opacity [[1 :!important]]
+          {:opacity [[1 :!important]]
            :transition [[:opacity "150ms"]]}]]
         [:nav
          {:display :flex
@@ -45,6 +44,7 @@
         [:div.counter
          {:font-size "1.44rem"
           :font-weight 700
+          :font-family "\"Roboto\", \"Helvetica\", \"Arial\", sans-serif"
           :width "30vw"
           :opacity 0.25
           :transition [[:opacity "1s"]]
@@ -74,6 +74,7 @@
            {:margin-bottom "10rem"}
            [:&>li
             {:font-size "2.0736rem"
+             :font-family "\"Roboto\", \"Helvetica\", \"Arial\", sans-serif"
              :line-height "2.985rem"}]]]
          [:&.header
           [:&.main
