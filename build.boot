@@ -26,14 +26,14 @@
 (deftask build []
   (comp (speak)
         (cljs)
+        (sift :add-jar {'cljsjs/material #".*.css$"})
+        (sift :move {#".*/material.inc.css"     "css/material.inc.css"
+                     #".*/material.min.inc.css" "css/material.min.inc.css"})
         (garden :styles-var 'showrum.styles/screen
                 :output-to "css/garden.css")))
 
 (deftask run []
   (comp (serve)
-        (sift :add-jar {'cljsjs/material #".*.css$"})
-        (sift :move {#".*/material.inc.css"     "css/material.inc.css"
-                     #".*/material.min.inc.css" "css/material.min.inc.css"})
         (watch)
         (reload)
         (cljs-devtools)

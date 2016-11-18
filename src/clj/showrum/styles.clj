@@ -29,7 +29,8 @@
           {:opacity [[1 :!important]]
            :transition [[:opacity "250ms"]]}]
          [:div.counter
-          {:opacity [[1 :!important]]
+          {:font-family "\"Roboto\", \"Helvetica\", \"Arial\", sans-serif"
+           :opacity [[1 :!important]]
            :transition [[:opacity "150ms"]]}]]
         [:nav
          {:display :flex
@@ -43,7 +44,7 @@
           {:width "50vw"}]]
         [:div.counter
          {:font-size "1.44rem"
-          :font-weight :bold
+          :font-weight 700
           :width "30vw"
           :opacity 0.25
           :transition [[:opacity "1s"]]
@@ -56,7 +57,7 @@
          :left 0
          :width "100vw"
          :height "100vh"
-         :transition [[:opacity "500ms" "cubic-bezier(0.22, 0.61, 0.36, 1)"]]}
+         :transition [[:transform "750ms" "cubic-bezier(0.18, 0.89, 0.41, 1.05)"]]}
         [:.slide
          {:margin "10vh 10vw"
           :height "80vh"
@@ -64,6 +65,9 @@
           :display :flex
           :flex-direction :column
           :justify-content :space-around}
+         [:h1 {:font-size "6rem"
+               :font-variant :small-caps
+               :font-weight 100}]
          [:&.bullets
           {:justify-content :space-between}
           [:ul
@@ -72,11 +76,9 @@
             {:font-size "2.0736rem"
              :line-height "2.985rem"}]]]
          [:&.header
-          [:h1 {:font-size "4rem"
-                :font-variant :small-caps}]
           [:&.main
            [:h1 {:font-size "8rem"
-                 :font-weight :bold
+                 :font-weight 900
                  :font-variant :none}]]]]]
        [:footer
         {:display :flex
@@ -88,4 +90,6 @@
          :padding "0.25rem 2vw 0.25rem 4vw"
          :border-radius "0.25rem 0 0 0"
          :color :white
-         :background-color black}]]])))
+         :background-color black
+         :font-family "\"Roboto\", \"Helvetica\", \"Arial\", sans-serif"
+         :font-weight 100}]]])))
