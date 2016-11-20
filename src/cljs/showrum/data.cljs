@@ -45,7 +45,8 @@
     :slide/order 2
     :slide/type :type/bullets
     :slide/title "Who am I?"
-    :slide/bullets ["@pepe | @damnpepe" "World Citizen" "Father" "Programmer"]}
+    :slide/bullets ["@pepe | @damnpepe" "World Citizen" "Father" "Programmer"]
+    :slide/notes "Last politics, we are all equal. Work on your family. Programming is adventure worth having. We are the makers of tomorrow and we should use our knowledge for good."}
    {:db/id -10
     :slide/order 3
     :slide/type :type/bullets
@@ -60,12 +61,13 @@
     :slide/order 5
     :slide/type :type/bullets
     :slide/title "AM"
-    :slide/bullets ["Clash of Titans" "Theory" "Story"]}
+    :slide/bullets ["Clash of Titans" "Information" "Story"]
+    :slide/notes "Two or more people, needed for evaluation. Titan of the day."}
    {:db/id -5
     :slide/order 6
     :slide/type :type/bullets
     :slide/title "PM"
-    :slide/bullets ["Exercises" "Hands on" "Q&A"]}
+    :slide/bullets ["Hands on" "Exercises" "Q&A"]}
    {:db/id -9
     :slide/order 7
     :slide/type :type/bullets
@@ -83,13 +85,13 @@
     :deck/place "CULS in Prague"
     :deck/title "Tools"
     :deck/order 2
-    :deck/slides [-12 -13 -14 -15 -16 -17]}
+    :deck/slides [-12 -13 -14 -15 -16 -17 -43 -44]}
    (main-header -12 "Frontend Development Tools")
    {:db/id -13
     :slide/order 2
     :slide/type :type/bullets
     :slide/title "Chrome Devtools"
-    :slide/bullets ["Standart" "Many extensions" "First task - install"]}
+    :slide/bullets ["Standart" "Many extensions" "First task - install Canary"]}
    {:db/id -14
     :slide/order 3
     :slide/type :type/bullets
@@ -100,8 +102,18 @@
     :slide/type :type/bullets
     :slide/title "Atom Editor"
     :slide/bullets ["GitHub" "OpenSource project" "Many plugins" "Third task - install"]}
-   (ask-me -16 6)
-   (fun-play -17 6)
+   {:db/id -43
+    :slide/order 5
+    :slide/type :type/bullets
+    :slide/title "JSBin"
+    :slide/bullets ["Fast check" "Found on the web" "JS libs, Doc/Style types"]}
+   {:db/id -44
+    :slide/order 6
+    :slide/title "Todays aside - reason"
+    :slide/type :type/bullets
+    :slide/bullets ["Microservices" "Containers" "Serverless" ]}
+   (ask-me -16 7)
+   (fun-play -17 8)
    {:db/id -18
     :deck/author  "Josef \"pepe\" Pospíšil"
     :deck/date "22. 11. 2016"
@@ -134,7 +146,7 @@
     :slide/order 6
     :slide/type :type/bullets
     :slide/title "Others"
-    :slide/bullets ["Markdown" "SVG" "HAML Jade Slim" "Binary"]}
+    :slide/bullets ["Markdown" "SVG" "Slim HAML Jade" "Binary"]}
    {:db/id -27
     :slide/order 7
     :slide/type :type/bullets
@@ -148,7 +160,7 @@
     :deck/place "CULS in Prague"
     :deck/title "Styles"
     :deck/order 4
-    :deck/slides [-29 -32 -33 -34 -35 -36]}
+    :deck/slides [-29 -32 -33 -34 -41 -42]}
    (main-header -29 "Frontend Development Styles")
    {:db/id -32
     :slide/order 2
@@ -165,8 +177,8 @@
     :slide/type :type/bullets
     :slide/title "Frameworks"
     :slide/bullets ["Bootstrap" "Semantic" "Tachyons" "Today's task"]}
-   (ask-me -35 7)
-   (fun-play -36 8)
+   (ask-me -41 7)
+   (fun-play -42 8)
    {:db/id -30
     :deck/author  "Josef \"pepe\" Pospíšil"
     :deck/date "24. 11. 2016"
@@ -193,7 +205,7 @@
    {:db/id -38
     :slide/order 7
     :slide/type :type/bullets
-    :slide/title "Not only frontend anymore"
+    :slide/title "Not only frontend"
     :slide/bullets ["Node.js" "npm" "Express.js"]}
    (ask-me -39 8)
    (fun-play -40 9)])

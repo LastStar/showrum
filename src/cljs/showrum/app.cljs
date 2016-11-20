@@ -9,15 +9,21 @@
 
 (defonce current-deck (atom 1))
 
+(defn set-slide
+  "Sets new slide number to atom and local storage"
+  [slide-no]
+  (.setItem js/localStorage "current-slide" slide-no)
+  (reset! current-slide slide-no))
+
 (defn next-slide
-  "Increases current slide"
+  "Increases current slide and saves it to local storaged"
   []
-  (swap! current-slide inc))
+  (set-slide (inc @current-slide)))
 
 (defn prev-slide
   "Decreases current slide"
   []
-  (swap! current-slide dec))
+  (set-slide (dec @current-slide)))
 
 (rum/defc slider < rum/reactive [slides]
   [:div.deck
@@ -69,13 +75,12 @@
         [:div
          {:key id}
          (mdl/button
-         {:mdl      [:ripple]
-          :disabled (= (rum/react current-deck) id)
-          :on-click (fn [e]
-                      (reset! current-slide 1)
-                      (reset! current-deck id))}
-         title)])]
-     [:div.counter (str (rum/react current-slide) " of " slides-count)]
+          {:mdl      [:ripple]
+           :disabled (= (rum/react current-deck) id)
+           :on-click (fn [e]
+                       (reset! current-slide 1)
+                       (reset! current-deck id))}
+          title)])]
      [:nav.slides
       (let [active (and (> (rum/react current-slide) 1) :active)]
         (mdl/button
@@ -88,7 +93,8 @@
          {:mdl      [:fab :mini-fab]
           :on-click (when active #(next-slide))
           :disabled    (not active)}
-         (mdl/icon "navigate_next")))]]))
+         (mdl/icon "navigate_next")))]
+     [:div.counter (str (rum/react current-slide) " of " slides-count)]]))
 
 (rum/defc footer [deck]
   (let [{author :deck/author date :deck/date place :deck/place} deck]
@@ -97,17 +103,40 @@
      [:div date]
      [:div place]]))
 
+(rum/defc notes < rum/reactive [slides]
+  [:div.page
+   [:div.notes
+    {:style {:width     (str (count slides) "00vw")
+             :transform (str "translateX(-" (dec (rum/react current-slide)) "00vw)")}}
+    (for [slide (sort-by :slide/order slides)]
+      (if-let [notes (:slide/notes slide)]
+        ^{:key (:db/id slide)}
+        [:div.note
+         (js/console.log slide)
+         notes]
+        ^{:key (:db/id slide)}
+        [:div.note
+         (js/console.log slide)
+         "No notes for this slide"]))]])
+
+(rum/defc present [decks deck slides]
+  [:div.page
+   (navigation slides decks)
+   (slider slides)
+   (footer deck)])
+
 (rum/defc page < rum/reactive []
-  (let [decks (db/decks)
-        deck (db/deck (rum/react current-deck))
-        slides (:deck/slides deck)]
-    [:div.page
-     (navigation slides decks)
-     (slider slides)
-     (footer deck)]))
+  (let [hash (-> js/document .-location .-hash)]
+    (let [decks (db/decks)
+          deck (db/deck (rum/react current-deck))
+          slides (:deck/slides deck)]
+      (if (= hash "#notes")
+        (notes slides)
+        (present decks deck slides)))))
 
 (defn init []
   (db/init)
+  (.setItem js/localStorage "current-slide" 0)
   (go-loop []
     (let [key (<! events/keydown-chan-events)]
       (let [slides-count (count (:deck/slides (db/deck @current-deck)))]
@@ -117,6 +146,11 @@
           32 (when (< @current-slide slides-count) (next-slide))
           (.log js/console (.-keyCode key))))
       (recur)))
+  (aset js/window "onstorage"
+        (fn [e]
+          (js/console.log e)
+          (case (.-key e)
+            "current-slide" (set-slide (.-newValue e)))))
   (rum/mount
    (page)
    (. js/document (getElementById "container"))))
