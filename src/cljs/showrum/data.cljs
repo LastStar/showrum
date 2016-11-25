@@ -67,7 +67,8 @@
     :slide/order 6
     :slide/type :type/bullets
     :slide/title "PM"
-    :slide/bullets ["Hands on" "Exercises" "Q&A"]}
+    :slide/bullets ["Hands on" "Exercises" "Q&A"]
+    :slide/notes "I would like to hear you,"}
    {:db/id -9
     :slide/order 7
     :slide/type :type/bullets
@@ -76,7 +77,8 @@
                     "Tuesday - Structure"
                     "Wednesday - Styles"
                     "Thursday - Scripts"
-                    "TGIF - Evaluation"]}
+                    "TGIF - Evaluation"]
+    :slide/notes "All days have its meaning"}
    (ask-me -6 8)
    (lets-go -8 9)
    {:db/id -11
@@ -109,7 +111,7 @@
     :slide/bullets ["Fast check" "Found on the web" "JS libs, Doc/Style types"]}
    {:db/id -44
     :slide/order 6
-    :slide/title "Todays aside - reason"
+    :slide/title "Today's aside - reason"
     :slide/type :type/bullets
     :slide/bullets ["Microservices" "Containers" "Serverless" ]}
    (ask-me -16 7)
@@ -120,7 +122,7 @@
     :deck/place "CULS in Prague"
     :deck/title "Structure"
     :deck/order 3
-    :deck/slides [-24 -19 -20 -21 -22 -23 -25 -26 -27]}
+    :deck/slides [-24 -19 -20 -21 -22 -23 -25 -26]}
    (main-header -19 "Frontend Development Structure")
    {:db/id -24
     :slide/order 2
@@ -147,13 +149,8 @@
     :slide/type :type/bullets
     :slide/title "Others"
     :slide/bullets ["Markdown" "SVG" "Slim HAML Jade" "Binary"]}
-   {:db/id -27
-    :slide/order 7
-    :slide/type :type/bullets
-    :slide/title "Middleman"
-    :slide/bullets ["Static site generator" "Ruby" "Many plugins" "Fourth task - install"]}
-   (ask-me -25 8)
-   (fun-play -26 9)
+   (ask-me -25 7)
+   (fun-play -26 8)
    {:db/id -28
     :deck/author  "Josef \"pepe\" Pospíšil"
     :deck/date "23. 11. 2016"
@@ -185,13 +182,13 @@
     :deck/place "CULS in Prague"
     :deck/title "Scripts"
     :deck/order 5
-    :deck/slides [-31 -35 -36 -37 -38 -39 -40]}
+    :deck/slides [-31 -35 -36 -37 -38 -39 -40 -45]}
    (main-header -31 "Frontend Development Scripts")
    {:db/id -35
     :slide/order 4
     :slide/type :type/bullets
-    :slide/title "ECMAScript"
-    :slide/bullets ["Proper name" "The programming language of the web" "ES8"]}
+    :slide/title "JavaScript"
+    :slide/bullets ["History" "Proper name" "The web programming language" "ES8"]}
    {:db/id -36
     :slide/order 5
     :slide/type :type/bullets
@@ -201,11 +198,32 @@
     :slide/order 6
     :slide/type :type/bullets
     :slide/title "Frameworks"
-    :slide/bullets ["Like a lot" "jQuery" "React.js" "Angular.js" "Ember.js"]}
+    :slide/bullets ["Like a lot" "jQuery" "React.js" "Angular.js" "Ember.js" "Google Closure"]}
    {:db/id -38
     :slide/order 7
     :slide/type :type/bullets
     :slide/title "Not only frontend"
     :slide/bullets ["Node.js" "npm" "Express.js"]}
-   (ask-me -39 8)
-   (fun-play -40 9)])
+   {:db/id -45
+    :slide/order 8
+    :slide/type :type/bullets
+    :slide/title "Material Design"
+    :slide/bullets ["Google" "Not finished" "Movie Time"]}
+   (header -39 9 "+420 774 278 707")
+   (fun-play -40 10)
+   {:db/id -46
+    :deck/author  "Josef \"pepe\" Pospíšil"
+    :deck/date "24. 11. 2016"
+    :deck/place "CULS in Prague"
+    :deck/title "Last ones"
+    :deck/order 6
+    :deck/slides [-47 -48 -49 -50 -51]}
+   (main-header -47 "Contemporary Frontend World")
+   (header -51 2 "https://www.surveymonkey.com/r/H2KCTVJ")
+   (header -48 3 "Thank you all!")
+   {:db/id -49
+    :slide/order 4
+    :slide/type :type/bullets
+    :slide/title "More pepe to you"
+    :slide/bullets ["@damnpepe Twitter/Mixcloud/Soundclound" "@pepe GitHub" "Quora"]}
+   (header -50 5 "See ya on the back")])

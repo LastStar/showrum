@@ -81,9 +81,9 @@
            {:margin-bottom "10rem"
             :padding-left 0}
            [:&>li
-            {:font-size "2.985rem"
+            {:font-size "4.299696rem"
              :font-family "\"Roboto\", \"Helvetica\", \"Arial\", sans-serif"
-             :line-height "4.299696rem"
+             :line-height "6.191562244rem"
              :list-style-type :none}
             [:&:before
              {:width "2rem"
@@ -95,14 +95,14 @@
          [:&.header
           [:&.main
            {:margin-left "5vw"}
-           [:h1 {:font-size "8rem"
+           [:h1 {:font-size "10rem"
                  :font-weight 900
                  :font-variant :none
                  :padding-left "5vw"
                  :border-left [["2rem" grey :solid]]}]]]]
         [:.note
-         {:font-size "4rem"
-          :line-height "6rem"}]]
+         {:font-size "3rem"
+          :line-height "4.5rem"}]]
        [:footer
         {:display :flex
          :justify-content :space-between

@@ -112,7 +112,6 @@
       (if-let [notes (:slide/notes slide)]
         ^{:key (:db/id slide)}
         [:div.note
-         (js/console.log slide)
          notes]
         ^{:key (:db/id slide)}
         [:div.note
