@@ -16,7 +16,6 @@
    :slide/type :type/header
    :slide/title title})
 
-
 (defn ask-me
   "Returns data for ask me anything slide"
   [id order]

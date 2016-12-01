@@ -1,7 +1,8 @@
 (ns showrum.db
-  (:require [datascript.core :as d]
-            [showrum.data :as data]))
-
+  (:require [cljs.spec :as s]
+            [datascript.core :as d]
+            [showrum.data :as data]
+            [showrum.spec]))
 
 (defonce schema
   {:deck/slides {:db/cardinality :db.cardinality/many
@@ -31,4 +32,7 @@
   "Initializes the db"
   []
   (d/reset-conn! conn (d/empty-db schema))
-  (d/transact! conn data/decks))
+  (let [decks data/decks]
+    (if (s/valid? :showrum.spec/decks decks)
+      (d/transact! conn decks)
+      (.alert js/window "Attention! Bad data!"))))
