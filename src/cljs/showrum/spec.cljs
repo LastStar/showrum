@@ -19,8 +19,14 @@
 (s/def :slide/title string?)
 (s/def :slide/bullets (s/coll-of string?))
 (s/def :slide/notes string?)
-(s/def ::slide (s/keys :req [:db/id :slide/order :slide/type :slide/title]
-                       :opt [:slide/bullets :slide/notes]))
+(defmulti slide-type :slide/type)
+(defmethod slide-type :type/main-header [_]
+  (s/keys :req [:db/id :slide/order :slide/type :slide/title]))
+(defmethod slide-type :type/header [_]
+  (s/keys :req [:db/id :slide/order :slide/type :slide/title]))
+(defmethod slide-type :type/bullets [_]
+  (s/keys :req [:db/id :slide/order :slide/type :slide/title :slide/bullets]))
+(s/def ::slide (s/multi-spec slide-type :slide/type))
 
 (s/def ::decks (s/* (s/alt :slide ::slide :deck ::deck)))
 
