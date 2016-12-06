@@ -5,15 +5,21 @@
             [showrum.db :as db]
             [showrum.events :as events]))
 
-(defonce current-slide (atom 1))
-
-(defonce current-deck (atom 1))
+(defonce current-slide (atom (js/Number.parseInt (.getItem js/localStorage "current-slide"))))
+(defonce current-deck (atom (js/Number.parseInt (.getItem js/localStorage "current-deck"))))
+(defonce loop-running (atom false))
 
 (defn set-slide
   "Sets new slide number to atom and local storage"
   [slide-no]
   (.setItem js/localStorage "current-slide" slide-no)
   (reset! current-slide slide-no))
+
+(defn set-deck
+  "Sets new deck number to atom and local storage"
+  [deck-no]
+  (.setItem js/localStorage "current-deck" deck-no)
+  (reset! current-deck deck-no))
 
 (defn next-slide
   "Increases current slide and saves it to local storaged"
@@ -78,8 +84,8 @@
           {:mdl      [:ripple]
            :disabled (= (rum/react current-deck) id)
            :on-click (fn [e]
-                       (reset! current-slide 1)
-                       (reset! current-deck id))}
+                       (set-slide 1)
+                       (set-deck id))}
           title)])]
      [:nav.slides
       (let [active (and (> (rum/react current-slide) 1) :active)]
@@ -115,7 +121,6 @@
          notes]
         ^{:key (:db/id slide)}
         [:div.note
-         (js/console.log slide)
          "No notes for this slide"]))]])
 
 (rum/defc present [decks deck slides]
@@ -133,9 +138,9 @@
         (notes slides)
         (present decks deck slides)))))
 
-(defn init []
-  (db/init)
-  (.setItem js/localStorage "current-slide" 0)
+(defn keyboard-loop
+  "Starts keyboard loop"
+  []
   (go-loop []
     (let [key (<! events/keydown-chan-events)]
       (let [slides-count (count (:deck/slides (db/deck @current-deck)))]
@@ -144,12 +149,23 @@
           39 (when (< @current-slide slides-count) (next-slide))
           32 (when (< @current-slide slides-count) (next-slide))
           (.log js/console (.-keyCode key))))
-      (recur)))
+      (recur))))
+
+(defn local-storage-handler
+  "Sets callback for local storage"
+  []
   (aset js/window "onstorage"
         (fn [e]
-          (js/console.log e)
           (case (.-key e)
-            "current-slide" (set-slide (.-newValue e)))))
-  (rum/mount
-   (page)
-   (. js/document (getElementById "container"))))
+            "current-slide" (set-slide (.-newValue e))
+            "current-deck" (set-deck (.-newValue e))))))
+
+
+(defn init []
+  (db/init)
+  (db/init-local-storage)
+  (when-not @loop-running
+    (keyboard-loop)
+    (swap! loop-running not))
+  (local-storage-handler)
+  (rum/mount (page) (. js/document (getElementById "container"))))
