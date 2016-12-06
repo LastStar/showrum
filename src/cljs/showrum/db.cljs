@@ -28,6 +28,14 @@
       [?e :deck/title ?dt]]
     @conn)))
 
+(defn init-local-storage
+  "Initializes the local storage"
+  []
+  (when-not (.getItem js/localStorage "current-deck")
+    (.setItem js/localStorage "current-deck" 1))
+  (when-not (.getItem js/localStorage "current-slide")
+    (.setItem js/localStorage "current-slide" 1)))
+
 (defn init
   "Initializes the db"
   []

@@ -1,5 +1,5 @@
 (set-env!
- :source-paths    #{"src/cljs" "src/clj"}
+ :source-paths    #{"src/cljs" "src/cljc" "src/clj"}
  :resource-paths  #{"resources"}
  :dependencies '[[adzerk/boot-cljs              "1.7.228-2" :scope "test"]
                  [adzerk/boot-reload            "0.4.13"    :scope "test"]
@@ -12,7 +12,7 @@
                  [rum-mdl                       "0.2.0"]
                  [datascript                    "0.15.4"]
                  [binaryage/devtools            "0.8.3"     :scope "test"]
-                 [binaryage/dirac               "0.8.4"     :scope "test"]
+                 [binaryage/dirac               "0.8.5"     :scope "test"]
                  [powerlaces/boot-cljs-devtools "0.1.2"     :scope "test"]
                  [org.martinklepsch/boot-garden "1.2.5-3"   :scope "test"]])
 
