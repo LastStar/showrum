@@ -21,8 +21,8 @@
 (s/def :slide/bullets (s/coll-of string?))
 (s/def :slide/notes string?)
 (s/def ::basic-slide
-  (s/keys :req [:db/id :slide/order :slide/type :slide/title]
-          :opt [:slide/notes]))
+  (s/keys :req [:slide/type :slide/title]
+          :opt [:db/id :slide/notes]))
 (defmulti slide-type :slide/type)
 (defmethod slide-type :type/main-header [_]
   ::basic-slide)

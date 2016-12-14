@@ -1,10 +1,28 @@
 (ns showrum.parser)
 
-(defn parse [md]
-  (let [[_ preamble] (re-matches #"(?m)---\n([\s\S]*)\n---" md)]
-    (let [[_ author] (re-matches #"[\s\S]*author: (.*)[\s\S]*" preamble)
-          [_ date]   (re-matches #"[\s\S]*date: (.*)[\s\S]*" preamble)
-          [_ title]  (re-matches #"[\s\S]*title: (.*)[\s\S]*" preamble)]
-      [{:deck/author author
-        :deck/date date
-        :deck/title title}])))
+(defn parse-deck [yaml]
+  (let [[_ preamble] (re-matches #"(?m)---\n([\s\S]*)\n---" yaml)
+        attrs [:deck/author :deck/date :deck/title]]
+    (into {}
+          (map
+           (fn [attr]
+             (let [path (re-pattern
+                         (str "[\\s\\S]*" (name attr) ": (.*)[\\s\\S]*"))
+                   value (second (re-matches path preamble))]
+               [attr value])) attrs))))
+
+(defn parse-slide [md]
+  (let [[_ main-header] (re-matches #"^# (.*)$" md)
+        [_ header body] (re-matches #"(?m)^## (.*)$([\s\S]*)" md)
+        body            (when-not (empty? body) (clojure.string/trim body))
+        bullets         (when body (mapv #(let [[_ text] (re-matches #"^\* (.*)" %)] text)
+                                         (clojure.string/split-lines body)))]
+    (let [slide {:slide/type  (if main-header
+                                :type/main-header
+                                (if body
+                                  :type/bullets
+                                  :type/header))
+                 :slide/title (or main-header header)}]
+      (if bullets
+        (assoc slide :slide/bullets bullets)
+        slide))))
