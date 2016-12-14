@@ -12,7 +12,8 @@
 (s/def :deck/title string?)
 (s/def :deck/order number?)
 (s/def :deck/slides (s/coll-of :db/id))
-(s/def ::deck (s/keys :req [:db/id :deck/author :deck/date :deck/place :deck/title :deck/order :deck/slides]))
+(s/def ::deck (s/keys :req [:deck/author :deck/date :deck/title]
+                      :opt [:db/id :deck/slides :deck/order :deck/place]))
 
 (s/def :slide/order number?)
 (s/def :slide/type slide-type?)

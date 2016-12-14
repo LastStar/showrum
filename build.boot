@@ -14,6 +14,8 @@
                  [binaryage/devtools            "0.8.3"     :scope "test"]
                  [binaryage/dirac               "0.8.5"     :scope "test"]
                  [powerlaces/boot-cljs-devtools "0.1.2"     :scope "test"]
+                 [markdown-clj                  "0.9.91"    :scope "test"]
+                 [crisptrutski/boot-cljs-test   "0.3.0"     :scope "test"]
                  [org.martinklepsch/boot-garden "1.2.5-3"   :scope "test"]])
 
 (require
@@ -21,7 +23,8 @@
  '[adzerk.boot-reload            :refer [reload]]
  '[pandeiro.boot-http            :refer [serve]]
  '[powerlaces.boot-cljs-devtools :refer [cljs-devtools]]
- '[org.martinklepsch.boot-garden :refer [garden]])
+ '[org.martinklepsch.boot-garden :refer [garden]]
+ '[crisptrutski.boot-cljs-test   :refer [test-cljs]])
 
 (deftask build []
   (comp (speak)
@@ -55,6 +58,25 @@
   []
   (comp (development)
         (run)))
+
+(deftask testing []
+  (set-env! :source-paths #(conj % "test/cljs"))
+  identity)
+
+;;; This prevents a name collision WARNING between the test task and
+;;; clojure.core/test, a function that nobody really uses or cares
+;;; about.
+(ns-unmap 'boot.user 'test)
+
+(deftask test []
+  (comp (testing)
+        (test-cljs :js-env :phantom
+                   :exit?  true)))
+
+(deftask auto-test []
+  (comp (testing)
+        (watch)
+        (test-cljs :js-env :phantom)))
 
 (deftask prod
   "Simple alias to build production build"
