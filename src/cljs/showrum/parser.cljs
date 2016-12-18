@@ -1,4 +1,5 @@
-(ns showrum.parser)
+(ns showrum.parser
+  (:require [clojure.string :refer [trim split-lines replace]]))
 
 (defn parse-deck [yaml]
   (let [[_ preamble] (re-matches #"(?m)---\n([\s\S]*)\n---" yaml)
@@ -11,17 +12,22 @@
                    value (second (re-matches path preamble))]
                [attr value])) attrs))))
 
+(defn- parse-bullets [body]
+  (mapv #(replace (trim (last %)) #"\n" " ")
+        (re-seq #"^\*([^*]*)" body)))
+
 (defn parse-slide [md]
-  (let [[_ main-header] (re-matches #"^# (.*)$" md)
+  (let [md (trim md)
+        [_ main-header] (re-matches #"^# (.*)$" md)
         [_ header body] (re-matches #"(?m)^## (.*)$([\s\S]*)" md)
-        body            (when-not (empty? body) (clojure.string/trim body))
-        bullets         (when body (mapv #(let [[_ text] (re-matches #"^\* (.*)" %)] text)
-                                         (clojure.string/split-lines body)))]
-    (let [slide {:slide/type  (if main-header
-                                :type/main-header
-                                (if body
-                                  :type/bullets
-                                  :type/header))
+        bullets         (when-not (empty? body)
+                          (parse-bullets (trim body)))]
+    (let [slide {:slide/type
+                 (if main-header
+                   :type/main-header
+                   (if bullets
+                     :type/bullets
+                     :type/header))
                  :slide/title (or main-header header)}]
       (if bullets
         (assoc slide :slide/bullets bullets)

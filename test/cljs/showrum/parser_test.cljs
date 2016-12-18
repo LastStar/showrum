@@ -23,6 +23,9 @@
       (is (= (:slide/type parsed) :type/main-header))
       (is (s/valid? :showrum.spec/slide parsed))
       (is (= (:slide/title parsed) "Main Header")))
+    (let [slide "\n# Main Heading\n "
+          parsed (parser/parse-slide slide)]
+      (is (= (:slide/title parsed) "Main Heading")))
     (let [slide "# Main Heading"
           parsed (parser/parse-slide slide)]
       (is (= (:slide/title parsed) "Main Heading"))))
@@ -37,6 +40,9 @@
       (is (= (:slide/title parsed) "Header")))
     (let [slide "## Heading"
           parsed (parser/parse-slide slide)]
+      (is (= (:slide/title parsed) "Heading")))
+    (let [slide "\n## Heading\n"
+          parsed (parser/parse-slide slide)]
       (is (= (:slide/title parsed) "Heading"))))
   (testing "Bullets"
     (let [slide "## Bullets\n\n* first\n* second"
@@ -45,7 +51,9 @@
       (is (instance? cljs.core/PersistentArrayMap parsed))
       (is (not-empty parsed))
       (is (= (:slide/type parsed) :type/bullets))
-      (print (s/explain :showrum.spec/slide parsed))
       (is (s/valid? :showrum.spec/slide parsed))
       (is (= (:slide/title parsed) "Bullets"))
-      (is (= (:slide/bullets parsed) ["first" "second"])))))
+      (is (= (:slide/bullets parsed) ["first" "second"])))
+    (let [slide "## Bullets\n\n* first\ncontinued\nlong\n* second\n"
+          parsed (parser/parse-slide slide)]
+      (is (= (:slide/bullets parsed) ["first continued long" "second"])))))
