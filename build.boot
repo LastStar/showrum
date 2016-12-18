@@ -12,9 +12,8 @@
                  [rum-mdl                       "0.2.0"]
                  [datascript                    "0.15.4"]
                  [binaryage/devtools            "0.8.3"     :scope "test"]
-                 [binaryage/dirac               "0.8.6"     :scope "test"]
+                 [binaryage/dirac               "0.8.7"     :scope "test"]
                  [powerlaces/boot-cljs-devtools "0.1.2"     :scope "test"]
-                 [markdown-clj                  "0.9.91"    :scope "test"]
                  [crisptrutski/boot-cljs-test   "0.3.0"     :scope "test"]
                  [org.martinklepsch/boot-garden "1.2.5-3"   :scope "test"]])
 
