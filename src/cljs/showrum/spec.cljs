@@ -2,7 +2,7 @@
   (:require
    [cljs.spec :as s]))
 
-(def slide-type? #{:type/main-header :type/header :type/bullets})
+(def slide-type? #{:type/main-header :type/header :type/bullets :type/text})
 
 (s/def :db/id number?)
 
@@ -19,6 +19,7 @@
 (s/def :slide/type slide-type?)
 (s/def :slide/title string?)
 (s/def :slide/bullets (s/coll-of string?))
+(s/def :slide/text string?)
 (s/def :slide/notes string?)
 (s/def ::basic-slide
   (s/keys :req [:slide/type :slide/title]
@@ -30,6 +31,8 @@
   ::basic-slide)
 (defmethod slide-type :type/bullets [_]
   (s/merge ::basic-slide (s/keys :req [:slide/bullets])))
+(defmethod slide-type :type/text [_]
+  (s/merge ::basic-slide (s/keys :req [:slide/text])))
 (s/def ::slide (s/multi-spec slide-type :slide/type))
 
 (s/def ::decks (s/* (s/alt :slide ::slide :deck ::deck)))

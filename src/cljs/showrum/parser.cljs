@@ -13,22 +13,26 @@
                [attr value])) attrs))))
 
 (defn- parse-bullets [body]
-  (mapv #(replace (trim (last %)) #"\n" " ")
-        (re-seq #"^\*([^*]*)" body)))
+  (->> body
+       (re-seq #"^\*([^*]*)")
+       (mapv #(-> % last trim (replace #"\n" " ")))))
+
+(defn- parse-text [body]
+  (->> body
+       (re-seq #"^([^*]*)$")
+       (mapv #(-> % last trim (replace #"\n" " ")))
+       first))
 
 (defn parse-slide [md]
-  (let [md (trim md)
+  (let [md              (trim md)
         [_ main-header] (re-matches #"^# (.*)$" md)
         [_ header body] (re-matches #"(?m)^## (.*)$([\s\S]*)" md)
         bullets         (when-not (empty? body)
-                          (parse-bullets (trim body)))]
-    (let [slide {:slide/type
-                 (if main-header
-                   :type/main-header
-                   (if bullets
-                     :type/bullets
-                     :type/header))
-                 :slide/title (or main-header header)}]
-      (if bullets
-        (assoc slide :slide/bullets bullets)
-        slide))))
+                          (parse-bullets (trim body)))
+        text            (when-not (empty? body)
+                          (parse-text (trim body)))]
+    (cond-> {}
+      main-header   (assoc :slide/type :type/main-header :slide/title main-header)
+      header        (assoc :slide/type :type/header :slide/title header)
+      (seq bullets) (assoc :slide/type :type/bullets :slide/bullets bullets)
+      (seq text)    (assoc :slide/type :type/text :slide/text text))))
