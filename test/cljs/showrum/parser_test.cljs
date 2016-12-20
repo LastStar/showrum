@@ -54,4 +54,9 @@
       (is (= (:slide/type parsed) :type/text))
       (is (s/valid? :showrum.spec/slide parsed) "Valid spec")
       (is (= (:slide/title parsed) "Text"))
-      (is (= (:slide/text parsed) "like really long one")))))
+      (is (= (:slide/text parsed) "like really long one"))))
+  (testing "Image slide"
+    (let [slide "## Image page\n\n![Image of you](http://you.me/image.png)"
+          parsed (parser/parse-slide slide)]
+      (is (s/valid? :showrum.spec/slide parsed))
+      (is (= (:slide/type parsed) :type/image)))))

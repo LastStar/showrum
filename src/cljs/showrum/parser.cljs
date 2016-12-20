@@ -19,7 +19,13 @@
 
 (defn- parse-text [body]
   (->> body
-       (re-seq #"^([^*]*)$")
+       (re-seq #"^([^*^!]*)$")
+       (mapv #(-> % last trim (replace #"\n" " ")))
+       first))
+
+(defn- parse-image [body]
+  (->> body
+       (re-seq #"^\!(.*)$")
        (mapv #(-> % last trim (replace #"\n" " ")))
        first))
 
@@ -30,9 +36,12 @@
         bullets         (when-not (empty? body)
                           (parse-bullets (trim body)))
         text            (when-not (empty? body)
-                          (parse-text (trim body)))]
+                          (parse-text (trim body)))
+        image           (when-not (empty? body)
+                          (parse-image (trim body)))]
     (cond-> {}
       main-header   (assoc :slide/type :type/main-header :slide/title main-header)
       header        (assoc :slide/type :type/header :slide/title header)
       (seq bullets) (assoc :slide/type :type/bullets :slide/bullets bullets)
-      (seq text)    (assoc :slide/type :type/text :slide/text text))))
+      (seq text)    (assoc :slide/type :type/text :slide/text text)
+      (seq image)    (assoc :slide/type :type/image :slide/image image))))
