@@ -1,8 +1,8 @@
 (ns showrum.parser
-  (:require [clojure.string :refer [trim split-lines replace]]))
+  (:require [clojure.string :refer [trim split-lines replace split]]))
 
 (defn parse-deck [yaml]
-  (let [[_ preamble] (re-matches #"(?m)---\n([\s\S]*)\n---" yaml)
+  (let [[_ preamble] (re-matches #"---\n([\s\S]*)\n---[\s\S]*" yaml)
         attrs [:deck/author :deck/date :deck/title]]
     (into {}
           (map
@@ -19,14 +19,14 @@
 
 (defn- parse-text [body]
   (->> body
-       (re-seq #"^([^*^!]*)$")
-       (mapv #(-> % last trim (replace #"\n" " ")))
+       (re-seq #"^[^*^!]*$")
+       (mapv #(-> % trim (replace #"\n" " ")))
        first))
 
 (defn- parse-image [body]
   (->> body
-       (re-seq #"^\!(.*)$")
-       (mapv #(-> % last trim (replace #"\n" " ")))
+       (re-seq #"^\!.*$")
+       (mapv #(-> % trim (replace #"\n" " ")))
        first))
 
 (defn parse-slide [md]
@@ -44,4 +44,10 @@
       header        (assoc :slide/type :type/header :slide/title header)
       (seq bullets) (assoc :slide/type :type/bullets :slide/bullets bullets)
       (seq text)    (assoc :slide/type :type/text :slide/text text)
-      (seq image)    (assoc :slide/type :type/image :slide/image image))))
+      (seq image)   (assoc :slide/type :type/image :slide/image image))))
+
+(defn parse-decks [doc]
+  (let [deck (parse-deck doc)
+        slides-docs (remove empty? (map trim (split doc #"---")))]
+    (into [deck]
+          (map #(parse-slide %) (rest slides-docs)))))

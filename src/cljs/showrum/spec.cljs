@@ -38,5 +38,5 @@
   (s/merge ::basic-slide (s/keys :req [:slide/image])))
 (s/def ::slide (s/multi-spec slide-type :slide/type))
 
-(s/def ::decks (s/* (s/alt :slide ::slide :deck ::deck)))
+(s/def ::decks (s/+ (s/alt :slide ::slide :deck ::deck)))
 
