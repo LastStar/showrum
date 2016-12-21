@@ -132,6 +132,16 @@ body #container .page .deck .slide.header.main h1, body #container .page .deck .
   border-left: 2rem hsl(0, 0%, 97%) solid;
 }
 
+body #container .page .deck .slide.text p, body #container .page .deck .note.text p, body #container .page .notes .slide.text p, body #container .page .notes .note.text p {
+  font-size: 2.985984rem;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  line-height: 4.29981696rem;
+}
+
+body #container .page .deck .slide.image h1.title, body #container .page .deck .note.image h1.title, body #container .page .notes .slide.image h1.title, body #container .page .notes .note.image h1.title {
+  font-size: 2.985984rem;
+}
+
 body #container .page .deck .note, body #container .page .notes .note {
   font-size: 3rem;
   line-height: 4.5rem;
