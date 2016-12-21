@@ -2,7 +2,8 @@
   (:require [cljs.spec :as s]
             [datascript.core :as d]
             [showrum.parser :as parser]
-            [showrum.spec]))
+            [showrum.spec]
+            [goog.net.XhrIo :as xhrio]))
 
 (defonce schema
   {:deck/slides {:db/cardinality :db.cardinality/many
@@ -51,4 +52,4 @@
         (.alert js/window "Attention! Bad data!")))))
 
 (defn init-from-gist [gist]
-  (.send goog.net.XhrIo gist init))
+  (xhrio/send gist init))
