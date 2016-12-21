@@ -2,6 +2,7 @@
   (:require [cljs.spec :as s]
             [datascript.core :as d]
             [showrum.parser :as parser]
+            [showrum.state :as state]
             [showrum.spec]
             [goog.net.XhrIo :as xhrio]))
 
@@ -11,8 +12,6 @@
 
 (defonce conn
   (d/create-conn schema))
-
-(defonce initialized (atom nil))
 
 (defn deck
   "Returns deck with author and date"
@@ -38,18 +37,16 @@
 
 (defn init
   "Initializes the db"
-  [decks-data]
-  (js/console.log decks-data)
+  [decks-response]
   (d/reset-conn! conn (d/empty-db schema))
-  (let [decks-data (parser/parse-decks (-> decks-data .-target .getResponse))]
+  (let [decks-data (parser/parse-decks (-> decks-response .-target .getResponse))]
     (if (s/valid? :showrum.spec/decks decks-data)
       (do
-        (reset! initialized true)
-        (d/transact! conn decks-data)
-        (js/console.log (decks)))
+        (reset! state/db-initialized true)
+        (d/transact! conn decks-data))
       (do
         (js/console.log (s/explain :showrum.spec/decks decks-data))
         (.alert js/window "Attention! Bad data!")))))
 
-(defn init-from-gist [gist]
-  (xhrio/send gist init))
+(defn init-from-gist [gist-uri]
+  (xhrio/send gist-uri init))

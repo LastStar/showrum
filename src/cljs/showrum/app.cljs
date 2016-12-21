@@ -3,38 +3,13 @@
   (:require [rum.core :as rum]
             [rum.mdl :as mdl]
             [showrum.db :as db]
+            [showrum.state :as state]
             [showrum.events :as events]))
-
-(defonce current-slide (atom (js/Number.parseInt (.getItem js/localStorage "current-slide"))))
-(defonce current-deck (atom (js/Number.parseInt (.getItem js/localStorage "current-deck"))))
-(defonce loop-running (atom false))
-
-(defn set-slide
-  "Sets new slide number to atom and local storage"
-  [slide-no]
-  (.setItem js/localStorage "current-slide" slide-no)
-  (reset! current-slide slide-no))
-
-(defn set-deck
-  "Sets new deck number to atom and local storage"
-  [deck-no]
-  (.setItem js/localStorage "current-deck" deck-no)
-  (reset! current-deck deck-no))
-
-(defn next-slide
-  "Increases current slide and saves it to local storaged"
-  []
-  (set-slide (inc @current-slide)))
-
-(defn prev-slide
-  "Decreases current slide"
-  []
-  (set-slide (dec @current-slide)))
 
 (rum/defc slider < rum/reactive [slides]
   [:div.deck
    {:style {:width     (str (count slides) "00vw")
-            :transform (str "translateX(-" (dec (rum/react current-slide)) "00vw)")}}
+            :transform (str "translateX(-" (dec (rum/react state/current-slide)) "00vw)")}}
    (for [{id    :db/id
           order :slide/order
           type  :slide/type
@@ -74,7 +49,7 @@
 
 (rum/defc slides-counter < rum/reactive
   [slides-count]
-  [:div.counter (str (rum/react current-slide) " of " slides-count)])
+  [:div.counter (str (rum/react state/current-slide) " of " slides-count)])
 
 (rum/defcs navigation <
   rum/reactive
@@ -85,8 +60,8 @@
         timer        (::timer state)
         slides-count (count slides)
         hover-class  (or (and (or @hovered
-                                  (= (rum/react current-slide) 1)
-                                  (= (rum/react current-slide) slides-count)) "hovered") "")]
+                                  (= (rum/react state/current-slide) 1)
+                                  (= (rum/react state/current-slide) slides-count)) "hovered") "")]
     [:div.navigation
      {:class          hover-class
       :on-mouse-enter #(reset! hovered true)
@@ -100,22 +75,22 @@
          {:key id}
          (mdl/button
           {:mdl      [:ripple]
-           :disabled (= (rum/react current-deck) id)
+           :disabled (= (rum/react state/current-deck) id)
            :on-click (fn [e]
-                       (set-slide 1)
-                       (set-deck id))}
+                       (state/set-slide 1)
+                       (state/set-deck id))}
           title)])]
      [:nav.slides
-      (let [active (and (> (rum/react current-slide) 1) :active)]
+      (let [active (and (> (rum/react state/current-slide) 1) :active)]
         (mdl/button
          {:mdl      [:fab :mini-fab]
-          :on-click (when active #(prev-slide))
+          :on-click (when active #(state/prev-slide))
           :disabled    (not active)}
          (mdl/icon "navigate_before")))
-      (let [active (and (< (rum/react current-slide) slides-count) :active)]
+      (let [active (and (< (rum/react state/current-slide) slides-count) :active)]
         (mdl/button
          {:mdl      [:fab :mini-fab]
-          :on-click (when active #(next-slide))
+          :on-click (when active #(state/next-slide))
           :disabled    (not active)}
          (mdl/icon "navigate_next")))]
      (slides-counter slides-count)]))
@@ -133,7 +108,7 @@
     (slides-counter (count slides))]
    [:div.notes
     {:style {:width     (str (count slides) "00vw")
-             :transform (str "translateX(-" (dec (rum/react current-slide)) "00vw)")}}
+             :transform (str "translateX(-" (dec (rum/react state/current-slide)) "00vw)")}}
     (for [slide (sort-by :slide/order slides)]
       (if-let [notes (:slide/notes slide)]
         ^{:key (:db/id slide)}
@@ -170,9 +145,9 @@
     (mdl/cell {:mdl [:2]}))])
 
 (rum/defc page < rum/reactive []
-  (if (rum/react db/initialized)
+  (if (rum/react state/db-initialized)
     (let [decks (db/decks)]
-      (let [deck (db/deck (rum/react current-deck))
+      (let [deck (db/deck (rum/react state/current-deck))
             slides (:deck/slides deck)
             hash (-> js/document .-location .-hash)]
         (if (= hash "#notes")
@@ -185,11 +160,11 @@
   []
   (go-loop []
     (let [key (<! events/keydown-chan-events)]
-      (let [slides-count (count (:deck/slides (db/deck @current-deck)))]
+      (let [slides-count (count (:deck/slides (db/deck @state/current-deck)))]
         (case (.-keyCode key)
-          37 (when (> @current-slide 1) (prev-slide))
-          39 (when (< @current-slide slides-count) (next-slide))
-          32 (when (< @current-slide slides-count) (next-slide))
+          37 (when (> @state/current-slide 1) (state/prev-slide))
+          39 (when (< @state/current-slide slides-count) (state/next-slide))
+          32 (when (< @state/current-slide slides-count) (state/next-slide))
           (js/console.log key)))
       (recur))))
 
@@ -199,13 +174,13 @@
   (aset js/window "onstorage"
         (fn [e]
           (case (.-key e)
-            "current-slide" (set-slide (.-newValue e))
-            "current-deck" (set-deck (.-newValue e))))))
+            "current-slide" (state/set-slide (.-newValue e))
+            "current-deck" (state/set-deck (.-newValue e))))))
 
 (defn init []
   (db/init-local-storage)
-  (when-not @loop-running
+  (when-not @state/loop-running
     (keyboard-loop)
-    (swap! loop-running not))
+    (swap! state/loop-running not))
   (local-storage-handler)
   (rum/mount (page) (. js/document (getElementById "container"))))
