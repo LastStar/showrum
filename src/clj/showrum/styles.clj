@@ -99,7 +99,15 @@
                  :font-weight 900
                  :font-variant :none
                  :padding-left "5vw"
-                 :border-left [["2rem" grey :solid]]}]]]]
+                 :border-left [["2rem" grey :solid]]}]]]
+         [:&.text
+          [:p
+           {:font-size "2.985984rem"
+            :font-family "\"Roboto\", \"Helvetica\", \"Arial\", sans-serif"
+            :line-height "4.29981696rem"}]]
+         [:&.image
+          [:h1.title
+           {:font-size "2.985984rem"}]]]
         [:.note
          {:font-size "3rem"
           :line-height "4.5rem"}]]

@@ -1,7 +1,7 @@
 (ns showrum.db
   (:require [cljs.spec :as s]
             [datascript.core :as d]
-            [showrum.data :as data]
+            [showrum.parser :as parser]
             [showrum.spec]))
 
 (defonce schema
@@ -10,6 +10,8 @@
 
 (defonce conn
   (d/create-conn schema))
+
+(defonce initialized (atom nil))
 
 (defn deck
   "Returns deck with author and date"
@@ -22,10 +24,7 @@
   (sort-by
    second
    (d/q
-    '[:find ?e ?do ?dt
-      :where
-      [?e :deck/order ?do]
-      [?e :deck/title ?dt]]
+    '[:find ?e ?do ?dt :where [?e :deck/order ?do] [?e :deck/title ?dt]]
     @conn)))
 
 (defn init-local-storage
@@ -38,9 +37,18 @@
 
 (defn init
   "Initializes the db"
-  []
+  [decks-data]
+  (js/console.log decks-data)
   (d/reset-conn! conn (d/empty-db schema))
-  (let [decks data/decks]
-    (if (s/valid? :showrum.spec/decks decks)
-      (d/transact! conn decks)
-      (.alert js/window "Attention! Bad data!"))))
+  (let [decks-data (parser/parse-decks (-> decks-data .-target .getResponse))]
+    (if (s/valid? :showrum.spec/decks decks-data)
+      (do
+        (reset! initialized true)
+        (d/transact! conn decks-data)
+        (js/console.log (decks)))
+      (do
+        (js/console.log (s/explain :showrum.spec/decks decks-data))
+        (.alert js/window "Attention! Bad data!")))))
+
+(defn init-from-gist [gist]
+  (.send goog.net.XhrIo gist init))
