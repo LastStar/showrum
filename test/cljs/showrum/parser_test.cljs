@@ -75,8 +75,14 @@
                    "## Text\n\nlike\nreally\nlong one"
                    "\n\n---\n\n"
                    "## Image slide\n\n![Image of you](http://you.me/image.png)")
-        parsed (parser/parse-decks decks)]
+        parsed (parser/parse-decks decks)
+        deck (first parsed)
+        slides (rest parsed)]
     (is (s/valid? :showrum.spec/decks parsed))
-    (is (s/valid? :showrum.spec/deck (first parsed)))
-    (doseq [slide (rest parsed)]
-      (is (s/valid? :showrum.spec/slide slide)))))
+    (is (s/valid? :showrum.spec/deck deck))
+    (is (= (:db/id deck) -1))
+    (is (= (:deck/order deck) 1))
+    (is (= (:deck/slides deck) [2 3 4 5 6]))
+    (doseq [slide slides]
+      (is (s/valid? :showrum.spec/slide slide))
+      (is (> -1 (:db/id slide))))))

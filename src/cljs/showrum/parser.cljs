@@ -47,7 +47,11 @@
       (seq image)   (assoc :slide/type :type/image :slide/image image))))
 
 (defn parse-decks [doc]
-  (let [deck (parse-deck doc)
-        slides-docs (remove empty? (map trim (split doc #"---")))]
-    (into [deck]
-          (map #(parse-slide %) (rest slides-docs)))))
+  (let [slides (map-indexed
+                (fn [i item] (assoc (parse-slide item) :db/id (- (+ 2 i))))
+                (rest (remove empty? (map trim (split doc #"---")))))
+        deck (assoc (parse-deck doc)
+                    :db/id -1
+                    :deck/order 1
+                    :deck/slides (mapv #(- (:db/id  %)) slides))]
+    (into [deck] slides)))

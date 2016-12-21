@@ -39,6 +39,8 @@
           order :slide/order
           type  :slide/type
           title :slide/title
+          text  :slide/text
+          image :slide/image
           :as   slide} (sort-by :slide/order slides)]
      (case type
        :type/main-header
@@ -56,7 +58,23 @@
         [:ul
          (for [item (:slide/bullets slide)]
            [:li
-            item])]]))])
+            item])]]
+       :type/text
+       [:div.slide.text
+        {:key id}
+        [:h1.title title]
+        [:p text]]
+       :type/image
+       [:div.slide.image
+        {:key id}
+        [:h1.title title]
+        [:div
+         [:img
+          {:src (last (re-matches #".*\((.*)\)" image))}]]]))])
+
+(rum/defc slides-counter < rum/reactive
+  [slides-count]
+  [:div.counter (str (rum/react current-slide) " of " slides-count)])
 
 (rum/defcs navigation <
   rum/reactive
@@ -100,7 +118,7 @@
           :on-click (when active #(next-slide))
           :disabled    (not active)}
          (mdl/icon "navigate_next")))]
-     [:div.counter (str (rum/react current-slide) " of " slides-count)]]))
+     (slides-counter slides-count)]))
 
 (rum/defc footer [deck]
   (let [{author :deck/author date :deck/date place :deck/place} deck]
@@ -111,6 +129,8 @@
 
 (rum/defc notes < rum/reactive [slides]
   [:div.page
+   [:div.navigation
+    (slides-counter (count slides))]
    [:div.notes
     {:style {:width     (str (count slides) "00vw")
              :transform (str "translateX(-" (dec (rum/react current-slide)) "00vw)")}}
@@ -129,14 +149,36 @@
    (slider slides)
    (footer deck)])
 
+(rum/defc gist-form []
+  [:div.gist
+   (mdl/grid
+    (mdl/cell {:mdl [:2]})
+    (mdl/cell {:mdl [:8]}
+              [:h4 "No decks loaded. Please add uri for the gist."]
+              [:form
+               {:on-submit (fn [e]
+                             (.stopPropagation e)
+                             (.preventDefault e)
+                             (db/init-from-gist (-> e .-target (aget "gist") .-value)))}
+               [:div
+                (mdl/textfield
+                 {:style {:width "50rem"}}
+                 (mdl/textfield-input {:type "text" :id "gist"})
+                 (mdl/textfield-label {:for "gist"} "Gist URI"))]
+               [:div
+                (mdl/button {:mdl [:raised :ripple]} "Parse")]])
+    (mdl/cell {:mdl [:2]}))])
+
 (rum/defc page < rum/reactive []
-  (let [hash (-> js/document .-location .-hash)]
-    (let [decks (db/decks)
-          deck (db/deck (rum/react current-deck))
-          slides (:deck/slides deck)]
-      (if (= hash "#notes")
-        (notes slides)
-        (present decks deck slides)))))
+  (if (rum/react db/initialized)
+    (let [decks (db/decks)]
+      (let [deck (db/deck (rum/react current-deck))
+            slides (:deck/slides deck)
+            hash (-> js/document .-location .-hash)]
+        (if (= hash "#notes")
+          (notes slides)
+          (present decks deck slides))))
+    (gist-form)))
 
 (defn keyboard-loop
   "Starts keyboard loop"
@@ -148,7 +190,7 @@
           37 (when (> @current-slide 1) (prev-slide))
           39 (when (< @current-slide slides-count) (next-slide))
           32 (when (< @current-slide slides-count) (next-slide))
-          (.log js/console (.-keyCode key))))
+          (js/console.log key)))
       (recur))))
 
 (defn local-storage-handler
@@ -160,9 +202,7 @@
             "current-slide" (set-slide (.-newValue e))
             "current-deck" (set-deck (.-newValue e))))))
 
-
 (defn init []
-  (db/init)
   (db/init-local-storage)
   (when-not @loop-running
     (keyboard-loop)
