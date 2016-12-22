@@ -27,14 +27,6 @@
     '[:find ?e ?do ?dt :where [?e :deck/order ?do] [?e :deck/title ?dt]]
     @conn)))
 
-(defn init-local-storage
-  "Initializes the local storage"
-  []
-  (when-not (.getItem js/localStorage "current-deck")
-    (.setItem js/localStorage "current-deck" 1))
-  (when-not (.getItem js/localStorage "current-slide")
-    (.setItem js/localStorage "current-slide" 1)))
-
 (defn init
   "Initializes the db"
   [decks-response]
@@ -42,7 +34,7 @@
   (let [decks-data (parser/parse-decks (-> decks-response .-target .getResponse))]
     (if (s/valid? :showrum.spec/decks decks-data)
       (do
-        (reset! state/db-initialized true)
+        (state/db-initialized)
         (d/transact! conn decks-data))
       (do
         (js/console.log (s/explain :showrum.spec/decks decks-data))

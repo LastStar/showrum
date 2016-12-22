@@ -51,6 +51,46 @@
   [slides-count]
   [:div.counter (str (rum/react state/current-slide) " of " slides-count)])
 
+(rum/defc deck-navigation < rum/reactive
+  [decks]
+  [:nav.decks
+   (for [[id _ title] decks]
+     [:div
+      {:key id}
+      (mdl/button
+       {:mdl      [:ripple]
+        :disabled (= (rum/react state/current-deck) id)
+        :on-click (fn [e]
+                    (state/set-deck id))}
+       title)])])
+
+(rum/defc slide-navigation < rum/reactive
+  [slide slides-count]
+  [:nav.slides
+   (let [active (and (> (rum/react state/current-slide) 1) :active)]
+     (mdl/button
+      {:mdl      [:fab :mini-fab]
+       :on-click (when active #(state/prev-slide))
+       :disabled    (not active)}
+      (mdl/icon "navigate_before")))
+   (let [active (and (< (rum/react state/current-slide) slides-count) :active)]
+     (mdl/button
+      {:mdl      [:fab :mini-fab]
+       :on-click (when active #(state/next-slide))
+       :disabled    (not active)}
+      (mdl/icon "navigate_next")))])
+
+(rum/defcs reload-decks
+  []
+  [:div
+   (mdl/button
+    {:mdl      [:fab :mini-fab]
+     :on-click (fn [e]
+                 (.preventDefault e)
+                 (.stopPropagation e)
+                 (state/db-cleared))}
+    (mdl/icon "refresh"))])
+
 (rum/defcs navigation <
   rum/reactive
   (rum/local false ::hovered)
@@ -69,30 +109,9 @@
                         (when @timer
                           (.clearTimeout js/window @timer))
                         (reset! timer (.setTimeout js/window #(reset! hovered false) 2000)))}
-     [:nav.decks
-      (for [[id _ title] decks]
-        [:div
-         {:key id}
-         (mdl/button
-          {:mdl      [:ripple]
-           :disabled (= (rum/react state/current-deck) id)
-           :on-click (fn [e]
-                       (state/set-slide 1)
-                       (state/set-deck id))}
-          title)])]
-     [:nav.slides
-      (let [active (and (> (rum/react state/current-slide) 1) :active)]
-        (mdl/button
-         {:mdl      [:fab :mini-fab]
-          :on-click (when active #(state/prev-slide))
-          :disabled    (not active)}
-         (mdl/icon "navigate_before")))
-      (let [active (and (< (rum/react state/current-slide) slides-count) :active)]
-        (mdl/button
-         {:mdl      [:fab :mini-fab]
-          :on-click (when active #(state/next-slide))
-          :disabled    (not active)}
-         (mdl/icon "navigate_next")))]
+     (reload-decks)
+     (deck-navigation decks)
+     (slide-navigation slides slides-count)
      (slides-counter slides-count)]))
 
 (rum/defc footer [deck]
@@ -145,7 +164,7 @@
     (mdl/cell {:mdl [:2]}))])
 
 (rum/defc page < rum/reactive []
-  (if (rum/react state/db-initialized)
+  (if (rum/react state/db-initialized?)
     (let [decks (db/decks)]
       (let [deck (db/deck (rum/react state/current-deck))
             slides (:deck/slides deck)
@@ -168,19 +187,8 @@
           (js/console.log key)))
       (recur))))
 
-(defn local-storage-handler
-  "Sets callback for local storage"
-  []
-  (aset js/window "onstorage"
-        (fn [e]
-          (case (.-key e)
-            "current-slide" (state/set-slide (.-newValue e))
-            "current-deck" (state/set-deck (.-newValue e))))))
-
 (defn init []
-  (db/init-local-storage)
-  (when-not @state/loop-running
+  (when-not @state/loop-running?
     (keyboard-loop)
-    (swap! state/loop-running not))
-  (local-storage-handler)
+    (state/loop-running))
   (rum/mount (page) (. js/document (getElementById "container"))))
