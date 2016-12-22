@@ -82,7 +82,7 @@
 
 (rum/defcs reload-decks
   []
-  [:div
+  [:nav.reload
    (mdl/button
     {:mdl      [:fab :mini-fab]
      :on-click (fn [e]
@@ -104,15 +104,18 @@
                                   (= (rum/react state/current-slide) slides-count)) "hovered") "")]
     [:div.navigation
      {:class          hover-class
-      :on-mouse-enter #(reset! hovered true)
+      :on-mouse-enter (fn [e]
+                        (when @timer
+                          (.clearTimeout js/window @timer))
+                        (reset! hovered true))
       :on-mouse-leave (fn [e]
                         (when @timer
                           (.clearTimeout js/window @timer))
                         (reset! timer (.setTimeout js/window #(reset! hovered false) 2000)))}
      (reload-decks)
      (deck-navigation decks)
-     (slide-navigation slides slides-count)
-     (slides-counter slides-count)]))
+     (slides-counter slides-count)
+     (slide-navigation slides slides-count)]))
 
 (rum/defc footer [deck]
   (let [{author :deck/author date :deck/date place :deck/place} deck]

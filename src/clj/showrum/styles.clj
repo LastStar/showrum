@@ -25,7 +25,7 @@
          :left "5vw"
          :width "90vw"
          :background-color grey
-         :border-radius "0.25rem"
+         :border-radius "1.5rem"
          :transition [[:opacity "3s"]]
          :transition-delay "2s"
          :opacity 0.075
@@ -47,7 +47,8 @@
           :transition [[:opacity "1s"]]
           :opacity 0}
          [:&.slides
-          {:width "10vw"}]
+          [:button:first-child
+           {:margin-right "1rem"}]]
          [:&.decks
           {:width "50vw"}]]
         [:div.counter
