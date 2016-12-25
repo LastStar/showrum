@@ -9,43 +9,21 @@
 (rum/defc slider < rum/reactive [slides]
   [:div.deck
    {:style {:width     (str (count slides) "00vw")
-            :transform (str "translateX(-" (dec (rum/react state/current-slide)) "00vw)")}}
-   (for [{id    :db/id
-          order :slide/order
-          type  :slide/type
-          title :slide/title
-          text  :slide/text
-          image :slide/image
-          :as   slide} (sort-by :slide/order slides)]
-     (case type
-       :type/main-header
-       [:div.slide.main.header
-        {:key id}
-        [:h1.title title]]
-       :type/header
-       [:div.slide.header
-        {:key id}
-        [:h1.title title]]
-       :type/bullets
-       [:div.slide.bullets
-        {:key id}
-        [:h1.title title]
-        [:ul
-         (for [item (:slide/bullets slide)]
-           [:li
-            item])]]
-       :type/text
-       [:div.slide.text
-        {:key id}
-        [:h1.title title]
-        [:p text]]
-       :type/image
-       [:div.slide.image
-        {:key id}
-        [:h1.title title]
-        [:div
-         [:img
-          {:src (last (re-matches #".*\((.*)\)" image))}]]]))])
+            :transform (str "translateX(-"
+                            (dec (rum/react state/current-slide)) "00vw)")}}
+   (for [{:keys [:db/id :slide/order :slide/type :slide/bullets
+                 :slide/title :slide/text :slide/image]} (sort-by :slide/order slides)]
+     [:div.slide
+      {:key id :class (name type)}
+      [:h1.title title]
+      (case type
+        :type/bullets
+        [:ul (for [item bullets] ^{:key item} [:li item])]
+        :type/text
+        [:p text]
+        :type/image
+        [:div [:img {:src (last (re-matches #".*\((.*)\)" image))}]]
+        nil)])])
 
 (rum/defc slides-counter < rum/reactive
   [slides-count]
@@ -61,8 +39,7 @@
       (mdl/button
        {:mdl      [:ripple]
         :disabled (= (rum/react state/current-deck) id)
-        :on-click (fn [e]
-                    (state/set-deck id))}
+        :on-click (fn [e] (state/set-deck id))}
        title)])])
 
 (rum/defc slide-navigation < rum/reactive
@@ -72,13 +49,13 @@
      (mdl/button
       {:mdl      [:fab :mini-fab]
        :on-click (when active #(state/prev-slide))
-       :disabled    (not active)}
+       :disabled (not active)}
       (mdl/icon "navigate_before")))
    (let [active (and (< (rum/react state/current-slide) slides-count) :active)]
      (mdl/button
       {:mdl      [:fab :mini-fab]
        :on-click (when active #(state/next-slide))
-       :disabled    (not active)}
+       :disabled (not active)}
       (mdl/icon "navigate_next")))])
 
 (rum/defcs reload-decks
@@ -86,10 +63,7 @@
   [:nav.reload
    (mdl/button
     {:mdl      [:fab :mini-fab]
-     :on-click (fn [e]
-                 (.preventDefault e)
-                 (.stopPropagation e)
-                 (state/db-cleared))}
+     :on-click (fn [e] (state/db-cleared))}
     (mdl/icon "refresh"))])
 
 (rum/defcs navigation <
@@ -97,21 +71,18 @@
   (rum/local false ::hovered)
   (rum/local nil ::timer)
   [state slides decks]
-  (let [hovered      (::hovered state)
-        timer        (::timer state)
-        slides-count (count slides)
-        hover-class  (or (and (or @hovered
-                                  (= (rum/react state/current-slide) 1)
-                                  (= (rum/react state/current-slide) slides-count)) "hovered") "")]
+  (let [hovered       (::hovered state)
+        timer         (::timer state)
+        slides-count  (count slides)
+        clear-timer   #(when @timer (.clearTimeout js/window @timer))
+        current-slide (rum/react state/current-slide)
+        hover-class   (if (or @hovered (= current-slide 1) (= current-slide slides-count))
+                        "hovered" "")]
     [:div.navigation
      {:class          hover-class
-      :on-mouse-enter (fn [e]
-                        (when @timer
-                          (.clearTimeout js/window @timer))
-                        (reset! hovered true))
+      :on-mouse-enter (fn [e] (clear-timer) (reset! hovered true))
       :on-mouse-leave (fn [e]
-                        (when @timer
-                          (.clearTimeout js/window @timer))
+                        (clear-timer)
                         (reset! timer (.setTimeout js/window #(reset! hovered false) 2000)))}
      (reload-decks)
      (deck-navigation decks)
@@ -119,11 +90,11 @@
      (slide-navigation slides slides-count)]))
 
 (rum/defc footer [deck]
-  (let [{author :deck/author date :deck/date place :deck/place} deck]
+  (let [{:keys [:deck/author :deck/date :deck/place]} deck]
     [:footer
      [:div author]
      [:div date]
-     [:div place]]))
+     (when [:div place])]))
 
 (rum/defc notes < rum/reactive [slides]
   [:div.page
@@ -155,7 +126,6 @@
               [:h4 "No decks loaded. Please add uri for the gist."]
               [:form
                {:on-submit (fn [e]
-                             (.stopPropagation e)
                              (.preventDefault e)
                              (db/init-from-gist (-> e .-target (aget "gist") .-value)))}
                [:div
@@ -163,8 +133,7 @@
                  {:style {:width "50rem"}}
                  (mdl/textfield-input {:type "text" :id "gist"})
                  (mdl/textfield-label {:for "gist"} "Gist URI"))]
-               [:div
-                (mdl/button {:mdl [:raised :ripple]} "Parse")]])
+               [:div (mdl/button {:mdl [:raised :ripple]} "Parse")]])
     (mdl/cell {:mdl [:2]}))])
 
 (rum/defc page < rum/reactive []

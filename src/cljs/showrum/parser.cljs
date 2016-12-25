@@ -26,7 +26,7 @@
 (defn- parse-image [body]
   (->> body
        (re-seq #"^\!.*$")
-       (mapv #(-> % trim (replace #"\n" " ")))
+       (mapv #(-> % trim (replace #"\n" "")))
        first))
 
 (defn parse-slide [md]

@@ -91,14 +91,13 @@
               :display :inline-block
               :content "\"\u00A0\""
               :background-color grey}]]]]
-         [:&.header
-          [:&.main
-           {:margin-left "5vw"}
-           [:h1 {:font-size "10rem"
-                 :font-weight 900
-                 :font-variant :none
-                 :padding-left "5vw"
-                 :border-left [["2rem" grey :solid]]}]]]
+         [:&.main-header
+          {:margin-left "5vw"}
+          [:h1 {:font-size "10rem"
+                :font-weight 900
+                :font-variant :none
+                :padding-left "5vw"
+                :border-left [["2rem" grey :solid]]}]]
          [:&.text
           [:p
            {:font-size "2.985984rem"
