@@ -1,8 +1,8 @@
 (ns showrum.parser
   (:require [clojure.string :refer [trim split-lines replace split]]))
 
-(defn parse-deck [yaml]
-  (let [[_ preamble] (re-matches #"---\n([\s\S]*)\n---[\s\S]*" yaml)
+(defn parse-preamble [yaml]
+  (let [[_ preamble] (re-matches #"---\n([\s\S]*)\n---\n[\s\S]*" yaml)
         attrs [:deck/author :deck/date :deck/title]]
     (into {}
           (map
@@ -46,12 +46,21 @@
       (seq text)    (assoc :slide/type :type/text :slide/text text)
       (seq image)   (assoc :slide/type :type/image :slide/image image))))
 
+(defn parse-deck
+  ([doc order]
+   (let [slides (map-indexed
+                 (fn [i item] (assoc (parse-slide item) :db/id (- (+ 10 (* order 10) i))))
+                 (rest (remove empty? (map trim (split doc #"\n---\n")))))
+         deck (assoc (parse-preamble doc)
+                     :db/id (- order)
+                     :deck/order order
+                     :deck/slides (mapv #(:db/id  %) slides))]
+     (into [deck] slides)))
+  ([doc] (parse-deck doc 1)))
+
 (defn parse-decks [doc]
-  (let [slides (map-indexed
-                (fn [i item] (assoc (parse-slide item) :db/id (- (+ 2 i))))
-                (rest (remove empty? (map trim (split doc #"---")))))
-        deck (assoc (parse-deck doc)
-                    :db/id -1
-                    :deck/order 1
-                    :deck/slides (mapv #(- (:db/id  %)) slides))]
-    (into [deck] slides)))
+  (let [deck-docs (split doc #"\n===\n")]
+    (flatten
+     (map-indexed
+      (fn [i deck-doc] (parse-deck (trim deck-doc) (inc i)))
+      deck-docs))))

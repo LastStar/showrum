@@ -54,6 +54,7 @@
 (rum/defc deck-navigation < rum/reactive
   [decks]
   [:nav.decks
+   {:width (str (count decks) "2vw")}
    (for [[id _ title] decks]
      [:div
       {:key id}

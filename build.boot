@@ -47,8 +47,7 @@
   identity)
 
 (deftask development []
-  (task-options! cljs {:optimizations :none
-                       :source-map true}
+  (task-options! cljs {:optimizations :none}
                  reload {:on-jsload 'showrum.app/init})
   identity)
 
