@@ -22,7 +22,7 @@ body #container .page div.navigation {
   position: absolute;
   z-index: 10;
   background-color: hsl(0, 0%, 97%);
-  border-radius: 0.25rem;
+  border-radius: 1.5rem;
   display: flex;
   transition: opacity 3s;
   opacity: 0.075;
@@ -53,12 +53,8 @@ body #container .page div.navigation nav {
   opacity: 0;
 }
 
-body #container .page div.navigation nav.slides {
-  width: 10vw;
-}
-
-body #container .page div.navigation nav.decks {
-  width: 50vw;
+body #container .page div.navigation nav.slides button:first-child {
+  margin-right: 1rem;
 }
 
 body #container .page div.navigation div.counter {
