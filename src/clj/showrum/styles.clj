@@ -48,9 +48,7 @@
           :opacity 0}
          [:&.slides
           [:button:first-child
-           {:margin-right "1rem"}]]
-         [:&.decks
-          {:width "50vw"}]]
+           {:margin-right "1rem"}]]]
         [:div.counter
          {:font-size "2.0rem"
           :font-weight 900
