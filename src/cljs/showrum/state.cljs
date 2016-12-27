@@ -1,9 +1,16 @@
-(ns showrum.state)
+(ns showrum.state
+  (:require [rum.core :refer [cursor-in]]))
 
-(defonce db-initialized? (atom nil))
-(defonce current-slide (atom (js/Number.parseInt (.getItem js/localStorage "current-slide"))))
-(defonce current-deck (atom (js/Number.parseInt (.getItem js/localStorage "current-deck"))))
-(defonce loop-running? (atom false))
+(defonce app
+  (atom {:db           {:initialized nil}
+         :current      {:slide (js/Number.parseInt (.getItem js/localStorage "current-slide"))
+                        :deck  (js/Number.parseInt (.getItem js/localStorage "current-deck"))}
+         :loop-running false}))
+
+(def db-initialized? (cursor-in app [:db :initialized]))
+(def current-slide (cursor-in app [:current :slide]))
+(def current-deck (cursor-in app [:current :deck]))
+(def loop-running? (cursor-in app [:loop-running]))
 
 (defn- set-slide
   [slide-no from-storage]
@@ -35,7 +42,6 @@
   []
   (aset js/window "onstorage"
         (fn [e]
-          (js/console.log e)
           (case (.-key e)
             "current-slide" (set-slide (.-newValue e) true)
             "current-deck" (set-deck (.-newValue e))))))
@@ -45,8 +51,6 @@
   (local-storage-handler)
   (reset! db-initialized? true))
 
-(defn db-cleared []
-  (reset! db-initialized? false))
+(defn db-cleared [] (reset! db-initialized? false))
 
-(defn loop-running []
-  (swap! loop-running? not))
+(defn loop-running [] (swap! loop-running? not))
