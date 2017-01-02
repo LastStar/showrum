@@ -38,12 +38,11 @@
           slides       (:deck/slides deck)
           slides-count (count slides)
           hash         (-> js/document .-location .-hash)]
-      (when-not @state/loop-running?
-        (events/start-keyboard-loop
-         {37 #(when (> @state/current-slide 1) (state/prev-slide))
-          39 #(when (< @state/current-slide slides-count) (state/next-slide))
-          32 #(when (< @state/current-slide slides-count) (state/next-slide))})
-        (state/loop-running))
+      (state/set-slides-count slides-count)
+      (events/start-keyboard-loop
+       {37 #(state/prev-slide)
+        39 #(state/next-slide)
+        32 #(state/next-slide)})
       [:div
        (if (= hash "#notes")
          (presentation/notes slides)

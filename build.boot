@@ -1,27 +1,27 @@
 (set-env!
  :source-paths    #{"src/cljs" "src/clj"}
  :resource-paths  #{"resources"}
- :dependencies '[[adzerk/boot-cljs              "1.7.228-2" :scope "test"]
-                 [adzerk/boot-reload            "0.4.13"    :scope "test"]
-                 [pandeiro/boot-http            "0.7.2"     :scope "test"]
-                 [com.cemerick/piggieback       "0.2.1"     :scope "test"]
-                 [org.clojure/tools.nrepl       "0.2.12"    :scope "test"]
-                 [weasel                        "0.7.0"     :scope "test"]
+ :dependencies '[[adzerk/boot-cljs              "1.7.228-2"      :scope "test"]
+                 [adzerk/boot-reload            "0.4.13"         :scope "test"]
+                 [pandeiro/boot-http            "0.7.2"          :scope "test"]
+                 [com.cemerick/piggieback       "0.2.1"          :scope "test"]
+                 [org.clojure/tools.nrepl       "0.2.12"         :scope "test"]
+                 [weasel                        "0.7.0"          :scope "test"]
                  [org.clojure/clojurescript     "1.9.293"]
                  [rum                           "0.10.7"]
                  [rum-mdl                       "0.2.0"]
                  [datascript                    "0.15.5"]
-                 [binaryage/devtools            "0.8.3"     :scope "test"]
-                 [binaryage/dirac               "0.8.7"     :scope "test"]
-                 [powerlaces/boot-cljs-devtools "0.1.2"     :scope "test"]
-                 [crisptrutski/boot-cljs-test   "0.3.0"     :scope "test"]
-                 [org.martinklepsch/boot-garden "1.2.5-3"   :scope "test"]])
+                 [binaryage/devtools            "0.8.3"          :scope "test"]
+                 [binaryage/dirac               "0.8.8"          :scope "test"]
+                 [powerlaces/boot-cljs-devtools "0.1.3-SNAPSHOT" :scope "test"]
+                 [crisptrutski/boot-cljs-test   "0.3.0"          :scope "test"]
+                 [org.martinklepsch/boot-garden "1.2.5-3"        :scope "test"]])
 
 (require
  '[adzerk.boot-cljs              :refer [cljs]]
  '[adzerk.boot-reload            :refer [reload]]
  '[pandeiro.boot-http            :refer [serve]]
- '[powerlaces.boot-cljs-devtools :refer [cljs-devtools]]
+ '[powerlaces.boot-cljs-devtools :refer [cljs-devtools dirac]]
  '[org.martinklepsch.boot-garden :refer [garden]]
  '[crisptrutski.boot-cljs-test   :refer [test-cljs]])
 
@@ -38,6 +38,7 @@
   (comp (serve)
         (watch)
         (reload)
+        (dirac)
         (cljs-devtools)
         (build)))
 

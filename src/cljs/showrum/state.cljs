@@ -4,13 +4,17 @@
 (defonce app
   (atom {:db           {:initialized nil}
          :current      {:slide (js/Number.parseInt (.getItem js/localStorage "current-slide"))
-                        :deck  (js/Number.parseInt (.getItem js/localStorage "current-deck"))}
+                        :deck  (js/Number.parseInt (.getItem js/localStorage "current-deck"))
+                        :slides-count 0}
          :loop-running false}))
 
 (def db-initialized? (cursor-in app [:db :initialized]))
 (def current-slide (cursor-in app [:current :slide]))
+(def current-slides-count (cursor-in app [:current :slides-count]))
 (def current-deck (cursor-in app [:current :deck]))
 (def loop-running? (cursor-in app [:loop-running]))
+
+(defn loop-running [] (reset! loop-running? true))
 
 (defn- set-slide
   [slide-no from-storage]
@@ -21,17 +25,18 @@
 
 (defn- set-deck
   [deck-no]
-  (.setItem js/localStorage "current-deck" deck-no)
   (set-slide 1 false)
   (reset! current-deck deck-no))
 
 (defn next-slide
   []
-  (set-slide (inc @current-slide) false))
+  (if (< @current-slide @current-slides-count)
+    (set-slide (inc @current-slide) false)))
 
 (defn prev-slide
   []
-  (set-slide (dec @current-slide) false))
+  (if (> @current-slide 1)
+    (set-slide (dec @current-slide) false)))
 
 (defn init-local-storage
   []
@@ -53,4 +58,7 @@
 
 (defn db-cleared [] (reset! db-initialized? false))
 
-(defn loop-running [] (swap! loop-running? not))
+(defn set-slides-count
+  [slides-count]
+  (reset! current-slides-count slides-count))
+
