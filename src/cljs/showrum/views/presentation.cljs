@@ -34,4 +34,5 @@
 (rum/defc main [decks deck slides]
   [:div.page
    (navigation/main slides decks)
+   (navigation/search-panel)
    (slider slides)])

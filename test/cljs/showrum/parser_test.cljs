@@ -17,48 +17,49 @@
 (deftest test-slide-parsing []
   (testing "Main header slide"
     (let [slide "# Main Header"
-          parsed (parser/parse-slide slide)]
+          parsed (parser/parse-slide slide 1)]
       (is (s/valid? :showrum.spec/slide parsed))
       (is (= (:slide/type parsed) :type/main-header))
-      (is (= (:slide/title parsed) "Main Header")))
+      (is (= (:slide/title parsed) "Main Header"))
+      (is (= (:slide/order parsed) 1)))
     (let [slide "\n# Main Heading\n "
-          parsed (parser/parse-slide slide)]
+          parsed (parser/parse-slide slide 1)]
       (is (= (:slide/title parsed) "Main Heading")))
     (let [slide "# Main Heading"
-          parsed (parser/parse-slide slide)]
+          parsed (parser/parse-slide slide 1)]
       (is (= (:slide/title parsed) "Main Heading"))))
   (testing "Header"
     (let [slide "## Header"
-          parsed (parser/parse-slide slide)]
+          parsed (parser/parse-slide slide 1)]
       (is (s/valid? :showrum.spec/slide parsed))
       (is (= (:slide/type parsed) :type/header))
       (is (= (:slide/title parsed) "Header")))
     (let [slide "## Heading"
-          parsed (parser/parse-slide slide)]
+          parsed (parser/parse-slide slide 1)]
       (is (= (:slide/title parsed) "Heading")))
     (let [slide "\n## Heading\n"
-          parsed (parser/parse-slide slide)]
+          parsed (parser/parse-slide slide 1)]
       (is (= (:slide/title parsed) "Heading"))))
   (testing "Bullets"
     (let [slide "## Bullets\n\n* first\n* second"
-          parsed (parser/parse-slide slide)]
+          parsed (parser/parse-slide slide 1)]
       (is (s/valid? :showrum.spec/slide parsed))
       (is (= (:slide/type parsed) :type/bullets))
       (is (= (:slide/title parsed) "Bullets"))
       (is (= (:slide/bullets parsed) ["first" "second"])))
     (let [slide "## Bullets\n\n* first\ncontinued\nlong\n* second\n"
-          parsed (parser/parse-slide slide)]
+          parsed (parser/parse-slide slide 1)]
       (is (= (:slide/bullets parsed) ["first continued long" "second"]))))
   (testing "Text"
     (let [slide "## Text\n\nlike\nreally\nlong one"
-          parsed (parser/parse-slide slide)]
+          parsed (parser/parse-slide slide 1)]
       (is (s/valid? :showrum.spec/slide parsed) "Valid spec")
       (is (= (:slide/type parsed) :type/text))
       (is (= (:slide/title parsed) "Text"))
       (is (= (:slide/text parsed) "like really long one"))))
   (testing "Image slide"
     (let [slide "## Image slide\n\n![Image of you](http://you.me/image.png)"
-          parsed (parser/parse-slide slide)]
+          parsed (parser/parse-slide slide 1)]
       (is (s/valid? :showrum.spec/slide parsed))
       (is (= (:slide/type parsed) :type/image))
       (is (= (:slide/title parsed) "Image slide"))

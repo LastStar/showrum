@@ -1,10 +1,6 @@
 (ns showrum.db
   (:require [cljs.spec :as s]
-            [datascript.core :as d]
-            [showrum.parser :as parser]
-            [showrum.state :as state]
-            [showrum.spec]
-            [goog.net.XhrIo :as xhrio]))
+            [datascript.core :as d]))
 
 (defonce schema
   {:deck/slides {:db/cardinality :db.cardinality/many
@@ -27,18 +23,29 @@
     '[:find ?e ?do ?dt :where [?e :deck/order ?do] [?e :deck/title ?dt]]
     @conn)))
 
+(defn search
+  "Searches in the texts for the term"
+  [term]
+  (let [term-patt (re-pattern (str term ".*"))]
+    (d/q
+     '[:find ?e ?dt ?so ?st
+       :in $ ?term
+       :where
+       [?se :slide/title ?st]
+       [(re-matches ?term ?st)]
+       [?se :slide/order ?so]
+       [?e :deck/slides ?se]
+       [?e :deck/title ?dt]]
+     @conn term-patt)))
+
 (defn init
   "Initializes the db"
-  [decks-response]
+  [decks-data]
   (d/reset-conn! conn (d/empty-db schema))
-  (let [decks-data (parser/parse-decks (-> decks-response .-target .getResponse))]
-    (if (s/valid? :showrum.spec/decks decks-data)
-      (do
-        (state/db-initialized)
-        (d/transact! conn decks-data))
-      (do
-        (js/console.log (s/explain :showrum.spec/decks decks-data))
-        (.alert js/window "Attention! Bad data!")))))
-
-(defn init-from-gist [gist-uri]
-  (xhrio/send gist-uri init))
+  (if (s/valid? :showrum.spec/decks decks-data)
+    (do
+      (d/transact! conn decks-data)
+      (js/console.log "Init db" decks-data))
+    (do
+      (js/console.log (s/explain :showrum.spec/decks decks-data))
+      (.alert js/window "Attention! Bad data!"))))
