@@ -23,7 +23,7 @@
 (s/def :slide/image string?)
 (s/def :slide/notes string?)
 (s/def ::basic-slide
-  (s/keys :req [:slide/type :slide/title]
+  (s/keys :req [:slide/type :slide/title :slide/order]
           :opt [:db/id :slide/notes]))
 (defmulti slide-type :slide/type)
 (defmethod slide-type :type/main-header [_]

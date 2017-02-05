@@ -15,7 +15,8 @@
               [:form
                {:on-submit (fn [e]
                              (.preventDefault e)
-                             (db/init-from-gist (-> e .-target (aget "gist") .-value)))}
+                             (db/init-from-gist (-> e .-target (aget "gist") .-value))
+                             (state/db-initialized))}
                [:div
                 (mdl/textfield
                  {:style {:width "50rem"}}
@@ -42,7 +43,8 @@
       (events/start-keyboard-loop
        {37 #(state/prev-slide)
         39 #(state/next-slide)
-        32 #(state/next-slide)})
+        32 #(state/next-slide)
+        83 #(state/toggle-search)})
       [:div
        (if (= hash "#notes")
          (presentation/notes slides)

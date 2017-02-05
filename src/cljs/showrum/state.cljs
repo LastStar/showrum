@@ -1,5 +1,5 @@
 (ns showrum.state
-  (:require [rum.core :refer [cursor-in]]))
+  (:require [rum.core :refer [cursor-in derived-atom]]))
 
 (defonce app
   (atom {:db           {:initialized nil}
@@ -13,6 +13,8 @@
 (def current-slides-count (cursor-in app [:current :slides-count]))
 (def current-deck (cursor-in app [:current :deck]))
 (def loop-running? (cursor-in app [:loop-running]))
+(def searching (cursor-in app [:searching]))
+(def search-term (cursor-in app [:search-term]))
 
 (defn loop-running [] (reset! loop-running? true))
 
@@ -37,6 +39,30 @@
   []
   (if (> @current-slide 1)
     (set-slide (dec @current-slide) false)))
+
+(defn toggle-search
+  []
+  (swap! searching not))
+
+(defn search-toggler
+  [e]
+  (toggle-search))
+
+(defn activate-search-result
+  [[deck _ slide _]]
+  (set-deck deck)
+  (set-slide slide false)
+  (toggle-search))
+
+(defn set-search-term
+  [term]
+  (reset! search-term term))
+
+(defn search-term-updater
+  [e]
+  (.preventDefault e)
+  (.stopPropagation e)
+  (set-search-term (-> e .-target .-value)))
 
 (defn init-local-storage
   []

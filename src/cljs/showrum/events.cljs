@@ -16,6 +16,6 @@
     (go-loop []
       (let [key (-> keydown-chan-events <! .-keyCode)]
         (if-let [action (get key-map key)]
-          (action)
+          (when-not @state/searching (action))
           (js/console.log key))
         (recur)))))

@@ -29,7 +29,7 @@
        (mapv #(-> % trim (replace #"\n" "")))
        first))
 
-(defn parse-slide [md]
+(defn parse-slide [md order]
   (let [md              (trim md)
         [_ main-header] (re-matches #"^# (.*)$" md)
         [_ header body] (re-matches #"(?m)^## (.*)$([\s\S]*)" md)
@@ -39,7 +39,7 @@
                           (parse-text (trim body)))
         image           (when-not (empty? body)
                           (parse-image (trim body)))]
-    (cond-> {}
+    (cond-> {:slide/order order}
       main-header   (assoc :slide/type :type/main-header :slide/title main-header)
       header        (assoc :slide/type :type/header :slide/title header)
       (seq bullets) (assoc :slide/type :type/bullets :slide/bullets bullets)
@@ -49,7 +49,8 @@
 (defn parse-deck
   ([doc order]
    (let [slides (map-indexed
-                 (fn [i item] (assoc (parse-slide item) :db/id (- (+ 10 (* order 10) i))))
+                 (fn [i item] (assoc (parse-slide item (inc i))
+                                     :db/id (- (+ 10 (* order 10) i))))
                  (rest (remove empty? (map trim (split doc #"\n---\n")))))
          deck (assoc (parse-preamble doc)
                      :db/id (- order)

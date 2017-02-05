@@ -27,6 +27,21 @@
     '[:find ?e ?do ?dt :where [?e :deck/order ?do] [?e :deck/title ?dt]]
     @conn)))
 
+(defn search
+  "Searches in the texts for the term"
+  [term]
+  (let [term-patt (re-pattern (str term ".*"))]
+    (d/q
+     '[:find ?e ?dt ?so ?st
+       :in $ ?term
+       :where
+       [?se :slide/title ?st]
+       [(re-matches ?term ?st)]
+       [?se :slide/order ?so]
+       [?e :deck/slides ?se]
+       [?e :deck/title ?dt]]
+     @conn term-patt)))
+
 (defn init
   "Initializes the db"
   [decks-response]

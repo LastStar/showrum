@@ -56,6 +56,19 @@
           :width "10vw"
           :text-align :right
           :padding-right "1rem"}]]
+       [:div.search-panel
+        {:position :absolute
+         :z-index 10
+         :width "75"
+         :top "5vh"
+         :left "5vw"
+         :padding [[0 "2rem"]]
+         :border-radius "3rem"
+         :background-color grey}
+        [:div.search-results
+         [:li:hover
+          {:cursor :pointer
+           :background-color :white}]]]
        [:.deck :.notes
         {:position :absolute
          :display :flex
