@@ -17,8 +17,8 @@
       {:key id}
       (mdl/button
        {:mdl      [:ripple]
-        :disabled (= (rum/react state/current-deck) id)
-        :on-click (fn [e] (state/set-deck id))}
+        :disabled (= (rum/react state/current-deck-id) id)
+        :on-click (fn [e] (state/set-deck-id id))}
        title)])])
 
 (rum/defc slide-navigation < rum/reactive
@@ -26,13 +26,13 @@
   [:nav.slides
    (let [active (and (> (rum/react state/current-slide) 1) :active)]
      (mdl/button
-      {:mdl      [:fab :mini-fab]
+      {:mdl      [:fab :mini-fab :ripple]
        :on-click (when active #(state/prev-slide))
        :disabled (not active)}
       (mdl/icon "navigate_before")))
    (let [active (and (< (rum/react state/current-slide) slides-count) :active)]
      (mdl/button
-      {:mdl      [:fab :mini-fab]
+      {:mdl      [:fab :mini-fab :ripple]
        :on-click (when active #(state/next-slide))
        :disabled (not active)}
       (mdl/icon "navigate_next")))])
@@ -41,7 +41,7 @@
   []
   [:nav.reload
    (mdl/button
-    {:mdl      [:fab :mini-fab]
+    {:mdl      [:fab :mini-fab :ripple]
      :on-click (fn [e] (state/db-cleared))}
     (mdl/icon "refresh"))])
 
@@ -72,7 +72,7 @@
      (let [term (rum/react state/search-term)]
        (if (and term (not (empty? term)))
          [:div.search-results
-          (let [search-results (db/search term)]
+          (let [search-results @state/search-results]
             (if (seq search-results)
               (mdl/list
                (for [res search-results]

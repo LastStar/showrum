@@ -1,5 +1,9 @@
 (ns showrum.state
-  (:require [rum.core :refer [cursor-in derived-atom]]))
+  (:require [rum.core :refer [cursor-in derived-atom]]
+            [showrum.db :as db]
+            [showrum.parser :as parser]
+            [showrum.spec]
+            [goog.net.XhrIo :as xhrio]))
 
 (defonce app
   (atom {:db           {:initialized nil}
@@ -11,10 +15,16 @@
 (def db-initialized? (cursor-in app [:db :initialized]))
 (def current-slide (cursor-in app [:current :slide]))
 (def current-slides-count (cursor-in app [:current :slides-count]))
-(def current-deck (cursor-in app [:current :deck]))
+(def current-deck-id (cursor-in app [:current :deck-id]))
+(def current-deck (derived-atom [current-deck-id] ::deck
+                                (fn [current-deck-id]
+                                  (db/deck current-deck-id))))
 (def loop-running? (cursor-in app [:loop-running]))
 (def searching (cursor-in app [:searching]))
 (def search-term (cursor-in app [:search-term]))
+(def search-results (derived-atom [search-term] ::search
+                                  (fn [search-term]
+                                    (db/search search-term))))
 
 (defn loop-running [] (reset! loop-running? true))
 
@@ -25,10 +35,10 @@
       (.setItem js/localStorage "current-slide" slide-no))
     (reset! current-slide slide-no)))
 
-(defn- set-deck
-  [deck-no]
+(defn- set-deck-id
+  [deck-id]
   (set-slide 1 false)
-  (reset! current-deck deck-no))
+  (reset! current-deck-id deck-id))
 
 (defn next-slide
   []
@@ -50,7 +60,7 @@
 
 (defn activate-search-result
   [[deck _ slide _]]
-  (set-deck deck)
+  (set-deck-id deck)
   (set-slide slide false)
   (toggle-search))
 
@@ -66,7 +76,7 @@
 
 (defn init-local-storage
   []
-  (set-deck 1)
+  (set-deck-id 1)
   (set-slide 1 false))
 
 (defn local-storage-handler
@@ -75,11 +85,13 @@
         (fn [e]
           (case (.-key e)
             "current-slide" (set-slide (.-newValue e) true)
-            "current-deck" (set-deck (.-newValue e))))))
+            "current-deck" (set-deck-id (.-newValue e))))))
 
-(defn db-initialized []
+(defn db-initialized
+  [decks-response]
   (init-local-storage)
   (local-storage-handler)
+  (db/init (parser/parse-decks (-> decks-response .-target .getResponse)))
   (reset! db-initialized? true))
 
 (defn db-cleared [] (reset! db-initialized? false))
@@ -88,3 +100,9 @@
   [slides-count]
   (reset! current-slides-count slides-count))
 
+(defn decks
+  []
+  (db/decks))
+
+(defn init-from-gist [gist-uri]
+  (xhrio/send gist-uri db-initialized))

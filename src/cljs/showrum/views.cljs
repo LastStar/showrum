@@ -3,7 +3,6 @@
             [rum.mdl :as mdl]
             [showrum.state :as state]
             [showrum.events :as events]
-            [showrum.db :as db]
             [showrum.views.presentation :as presentation]))
 
 (rum/defc gist-form []
@@ -15,8 +14,7 @@
               [:form
                {:on-submit (fn [e]
                              (.preventDefault e)
-                             (db/init-from-gist (-> e .-target (aget "gist") .-value))
-                             (state/db-initialized))}
+                             (state/init-from-gist (-> e .-target (aget "gist") .-value)))}
                [:div
                 (mdl/textfield
                  {:style {:width "50rem"}}
@@ -34,8 +32,8 @@
 
 (rum/defc main < rum/reactive []
   (if (rum/react state/db-initialized?)
-    (let [decks        (db/decks)
-          deck         (db/deck (rum/react state/current-deck))
+    (let [decks        (state/decks)
+          deck         (rum/react state/current-deck)
           slides       (:deck/slides deck)
           slides-count (count slides)
           hash         (-> js/document .-location .-hash)]
