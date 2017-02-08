@@ -66,6 +66,20 @@ body #container .page div.navigation div.counter {
   padding-right: 1rem;
 }
 
+body #container .page div.search-panel {
+  position: absolute;
+  z-index: 10;
+  top: 4rem;
+  left: 7vw;
+  padding: 0 2rem;
+  background-color: hsla(0, 0%, 97%, 0.97);
+}
+
+body #container .page div.search-panel div.search-results li.active {
+  cursor: pointer;
+  background-color: white;
+}
+
 body #container .page .deck, body #container .page .notes {
   position: absolute;
   display: flex;
@@ -116,11 +130,11 @@ body #container .page .deck .slide.bullets ul>li:before, body #container .page .
   background-color: hsl(0, 0%, 97%);
 }
 
-body #container .page .deck .slide.header.main, body #container .page .deck .note.header.main, body #container .page .notes .slide.header.main, body #container .page .notes .note.header.main {
+body #container .page .deck .slide.main-header, body #container .page .deck .note.main-header, body #container .page .notes .slide.main-header, body #container .page .notes .note.main-header {
   margin-left: 5vw;
 }
 
-body #container .page .deck .slide.header.main h1, body #container .page .deck .note.header.main h1, body #container .page .notes .slide.header.main h1, body #container .page .notes .note.header.main h1 {
+body #container .page .deck .slide.main-header h1, body #container .page .deck .note.main-header h1, body #container .page .notes .slide.main-header h1, body #container .page .notes .note.main-header h1 {
   font-size: 10rem;
   font-weight: 900;
   font-variant: none;
@@ -143,7 +157,7 @@ body #container .page .deck .note, body #container .page .notes .note {
   line-height: 4.5rem;
 }
 
-body #container .page footer {
+body #container footer {
   width: 40vw;
   right: 0;
   justify-content: space-between;
