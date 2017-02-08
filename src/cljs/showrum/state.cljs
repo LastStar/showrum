@@ -10,7 +10,8 @@
          :current      {:slide (js/Number.parseInt (.getItem js/localStorage "current-slide"))
                         :deck  (js/Number.parseInt (.getItem js/localStorage "current-deck"))
                         :slides-count 0}
-         :loop-running false}))
+         :loop-running false
+         :search {:result 0}}))
 
 (def db-initialized? (cursor-in app [:db :initialized]))
 (def current-slide (cursor-in app [:current :slide]))
@@ -20,11 +21,12 @@
                                 (fn [current-deck-id]
                                   (db/deck current-deck-id))))
 (def loop-running? (cursor-in app [:loop-running]))
-(def searching (cursor-in app [:searching]))
-(def search-term (cursor-in app [:search-term]))
+(def searching (cursor-in app [:search :active]))
+(def search-term (cursor-in app [:search :term]))
 (def search-results (derived-atom [search-term] ::search
                                   (fn [search-term]
-                                    (db/search search-term))))
+                                    (vec (db/search search-term)))))
+(def search-result (cursor-in app [:search :result]))
 
 (defn loop-running [] (reset! loop-running? true))
 
@@ -42,12 +44,12 @@
 
 (defn next-slide
   []
-  (if (< @current-slide @current-slides-count)
+  (when (< @current-slide @current-slides-count)
     (set-slide (inc @current-slide) false)))
 
 (defn prev-slide
   []
-  (if (> @current-slide 1)
+  (when (> @current-slide 1)
     (set-slide (dec @current-slide) false)))
 
 (defn toggle-search
@@ -59,14 +61,32 @@
   (toggle-search))
 
 (defn activate-search-result
-  [[deck _ slide _]]
-  (set-deck-id deck)
-  (set-slide slide false)
-  (toggle-search))
+  []
+  (js/console.log @search-results @search-result
+                  (get @search-results @search-result))
+  (let [[deck-id _ slide _] (get @search-results @search-result)]
+    (set-deck-id deck-id)
+    (set-slide slide false)
+    (toggle-search)))
 
 (defn set-search-term
   [term]
+  (reset! search-result 0)
   (reset! search-term term))
+
+(defn set-result
+  [result]
+  (when (and (>= result 0)
+             (< result (count @search-results)))
+    (reset! search-result result)))
+
+(defn next-result
+  []
+  (-> @search-result inc set-result))
+
+(defn prev-result
+  []
+  (-> @search-result dec set-result))
 
 (defn search-term-updater
   [e]
@@ -89,9 +109,9 @@
 
 (defn db-initialized
   [decks-response]
+  (-> decks-response .-target .getResponse parser/parse-decks db/init)
   (init-local-storage)
   (local-storage-handler)
-  (db/init (parser/parse-decks (-> decks-response .-target .getResponse)))
   (reset! db-initialized? true))
 
 (defn db-cleared [] (reset! db-initialized? false))

@@ -55,35 +55,51 @@
        :on-click state/search-toggler}
       (mdl/icon "search"))]))
 
+(rum/defc search-input-field < rum/reactive
+  []
+  [:div.search-input
+   (mdl/textfield
+    {:style {:width "50rem"}}
+    (mdl/textfield-input
+     {:type       "text"
+      :id         "search"
+      :value      (rum/react state/search-term)
+      :auto-focus true
+      :on-key-down #(when (contains? #{38 40} (.-keyCode %))
+                      (.preventDefault %))
+      :on-change  state/search-term-updater})
+    (mdl/textfield-label {:for "search"} "Search in the slide titles"))])
+
+(rum/defc search-results-list < rum/reactive
+  []
+  (let [term (rum/react state/search-term)]
+    (if (and term (not (empty? term)))
+      [:div.search-results
+       (let [search-results (rum/react state/search-results)]
+         (if (seq search-results)
+           (mdl/list
+            (let [current-result (rum/react state/search-result)]
+              (for [[id [deck-id deck-title slide-id slide-title]]
+                    (map-indexed (fn [i it] [i it]) search-results)]
+                (mdl/li
+                 {:key      (str id deck-id slide-id)
+                  :icon     "present_to_all"
+                  :class    (if (= id current-result) "active" "")
+                  :content  (str deck-title " - " slide-title)
+                  :on-mouse-enter #(state/set-result id)
+                  :on-mouse-leave #(state/set-result nil)
+                  :on-click #(state/activate-search-result deck-id slide-id)}))))
+           [:p
+            "No results for \""
+            [:strong (rum/react state/search-term)]
+            "\""]))])))
+
 (rum/defcs search-panel < rum/reactive
   []
   (if (rum/react state/searching)
     [:div.search-panel
-     [:div.search-input
-      (mdl/textfield
-       {:style {:width "50rem"}}
-       (mdl/textfield-input
-        {:type      "text"
-         :id        "search"
-         :value (rum/react state/search-term)
-         :auto-focus true
-         :on-change state/search-term-updater})
-       (mdl/textfield-label {:for "search"} "Search in the slide titles"))]
-     (let [term (rum/react state/search-term)]
-       (if (and term (not (empty? term)))
-         [:div.search-results
-          (let [search-results @state/search-results]
-            (if (seq search-results)
-              (mdl/list
-               (for [res search-results]
-                 (mdl/li
-                  {:key (str (get res 0) (get res 2))
-                   :content (str (get res 1) " - " (get res 3))
-                   :on-click #(state/activate-search-result res)})))
-            [:p
-             "No results for \""
-             [:strong (rum/react state/search-term)]
-             "\""]))]))]))
+     (search-input-field)
+     (search-results-list)]))
 
 (rum/defcs main <
   rum/reactive

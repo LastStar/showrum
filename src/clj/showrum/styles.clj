@@ -4,6 +4,7 @@
 
 (defonce black "hsl(0, 0%, 15%)")
 (defonce grey  "hsl(0, 0%, 97%)")
+(defonce lite-grey  "hsla(0, 0%, 97%, 0.97)")
 
 (defstyles screen
   (let [body (rule :body)]
@@ -59,14 +60,12 @@
        [:div.search-panel
         {:position :absolute
          :z-index 10
-         :width "75"
-         :top "5vh"
-         :left "5vw"
+         :top "4rem"
+         :left "7vw"
          :padding [[0 "2rem"]]
-         :border-radius "3rem"
-         :background-color grey}
+         :background-color lite-grey}
         [:div.search-results
-         [:li:hover
+         [:li.active
           {:cursor :pointer
            :background-color :white}]]]
        [:.deck :.notes

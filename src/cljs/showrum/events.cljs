@@ -10,12 +10,15 @@
   (let [c (chan 1)]
     (evs/listen js/window EventType/KEYDOWN #(put! c %)) c))
 
-(defn start-keyboard-loop [key-map]
+(defn start-keyboard-loop [pres-map search-map]
   (when-not @state/loop-running?
     (state/loop-running)
     (go-loop []
-      (let [key (-> keydown-chan-events <! .-keyCode)]
-        (if-let [action (get key-map key)]
-          (when-not @state/searching (action))
-          (js/console.log key))
+      (let [event (<! keydown-chan-events)
+            key (.-keyCode event)]
+        (when-let [action (get pres-map key)]
+          (when-not @state/searching (action)))
+        (when-let [action (get search-map key)]
+          (when @state/searching
+            (action)))
         (recur)))))

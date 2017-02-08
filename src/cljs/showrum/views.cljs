@@ -42,7 +42,10 @@
        {37 #(state/prev-slide)
         39 #(state/next-slide)
         32 #(state/next-slide)
-        83 #(state/toggle-search)})
+        83 #(state/toggle-search)}
+       {40 #(state/next-result)
+        38 #(state/prev-result)
+        13 #(state/activate-search-result)})
       [:div
        (if (= hash "#notes")
          (presentation/notes slides)
