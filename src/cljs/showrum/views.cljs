@@ -1,9 +1,22 @@
 (ns showrum.views
   (:require [rum.core :as rum]
             [rum.mdl :as mdl]
-            [showrum.state :as state]
+            [showrum.db :as db]
+            [showrum.parser :as parser]
             [showrum.events :as events]
-            [showrum.views.presentation :as presentation]))
+            [showrum.dispatchers :as dispatchers]
+            [showrum.views.presentation :as presentation]
+            [goog.net.XhrIo :as xhrio]
+            [scrum.dispatcher :refer [dispatch!]]
+            [scrum.core :refer [subscription]]))
+
+(defn db-initialized
+  [decks-response]
+  (-> decks-response .-target .getResponse parser/parse-decks db/init)
+  (dispatch! :initialized :db))
+
+(defn init-from-gist [gist-uri]
+  (xhrio/send gist-uri db-initialized))
 
 (rum/defc gist-form []
   [:div.gist
@@ -14,7 +27,7 @@
               [:form
                {:on-submit (fn [e]
                              (.preventDefault e)
-                             (state/init-from-gist (-> e .-target (aget "gist") .-value)))}
+                             (init-from-gist (-> e .-target (aget "gist") .-value)))}
                [:div
                 (mdl/textfield
                  {:style {:width "50rem"}}
@@ -31,21 +44,21 @@
      (when [:div place])]))
 
 (rum/defc main < rum/reactive []
-  (if (rum/react state/db-initialized?)
-    (let [decks        (state/decks)
-          deck         (rum/react state/current-deck)
+  (if (rum/react (subscription [:initialized :db]))
+    (let [decks        (db/decks)
+          deck         (db/deck (rum/react (subscription [:current :deck-id])))
           slides       (:deck/slides deck)
-          slides-count (count slides)
           hash         (-> js/document .-location .-hash)]
-      (state/set-slides-count slides-count)
+      (dispatch! :current :slides-count (count slides))
       (events/start-keyboard-loop
-       {37 #(state/prev-slide)
-        39 #(state/next-slide)
-        32 #(state/next-slide)
-        83 #(state/toggle-search)}
-       {40 #(state/next-result)
-        38 #(state/prev-result)
-        13 #(state/activate-search-result)})
+       {37 #(dispatch! :current :prev-slide)
+        39 #(dispatch! :current :next-slide)
+        32 #(dispatch! :current :next-slide)
+        83 #(dispatch! :search :toggle-active)}
+       {40 #(dispatch! :search :next-result)
+        38 #(dispatch! :search :prev-result)
+        13 #(dispatch! :search :activate-result)
+        27 #(dispatch! :search :toggle-active)})
       [:div
        (if (= hash "#notes")
          (presentation/notes slides)

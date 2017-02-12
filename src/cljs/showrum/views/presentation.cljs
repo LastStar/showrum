@@ -1,5 +1,6 @@
 (ns showrum.views.presentation
   (:require [rum.core :as rum]
+            [scrum.core :refer [subscription]]
             [showrum.views.navigation :as navigation]
             [showrum.state :as state]))
 
@@ -7,7 +8,7 @@
   [:div.deck
    {:style {:width     (str (count slides) "00vw")
             :transform (str "translateX(-"
-                            (dec (rum/react state/current-slide)) "00vw)")}}
+                            (dec (rum/react (subscription [:current :slide]))) "00vw)")}}
    (for [{:keys [:db/id :slide/order :slide/type :slide/bullets
                  :slide/title :slide/text :slide/image]} (sort-by :slide/order slides)]
      [:div.slide
