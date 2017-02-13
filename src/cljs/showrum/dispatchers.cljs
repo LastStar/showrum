@@ -1,7 +1,6 @@
 (ns showrum.dispatchers
   (:require [scrum.core :as scrum]))
 
-;; defmacro
 (defmulti initialized identity)
 (defmulti current identity)
 (defmulti search identity)

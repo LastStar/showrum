@@ -5,4 +5,5 @@
             [showrum.views :refer [main]]))
 
 (defn init []
-  (rum/mount (main reconciler) (. js/document (getElementById "container"))))
+  (rum/mount (main reconciler)
+             (. js/document (getElementById "container"))))

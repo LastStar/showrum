@@ -55,8 +55,6 @@
               (scrum/dispatch! r :search :term ""))
         27 #(scrum/dispatch! r :search :toggle-active)})
       [:div
-       (if (= hash "#notes")
-         (presentation/notes slides)
-         (presentation/main r decks deck slides))
+       (presentation/main r decks deck slides)
        (footer deck)])
     (gist-form r)))
