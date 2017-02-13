@@ -1,24 +1,12 @@
 (ns showrum.views
   (:require [rum.core :as rum]
             [rum.mdl :as mdl]
-            [showrum.db :as db]
-            [showrum.parser :as parser]
+            [scrum.core :as scrum]
             [showrum.events :as events]
-            [showrum.dispatchers :as dispatchers]
-            [showrum.views.presentation :as presentation]
-            [goog.net.XhrIo :as xhrio]
-            [scrum.dispatcher :refer [dispatch!]]
-            [scrum.core :refer [subscription]]))
+            [showrum.effects :refer [init-from-gist]]
+            [showrum.views.presentation :as presentation]))
 
-(defn db-initialized
-  [decks-response]
-  (-> decks-response .-target .getResponse parser/parse-decks db/init)
-  (dispatch! :initialized :db))
-
-(defn init-from-gist [gist-uri]
-  (xhrio/send gist-uri db-initialized))
-
-(rum/defc gist-form []
+(rum/defc gist-form [r]
   [:div.gist
    (mdl/grid
     (mdl/cell {:mdl [:2]})
@@ -27,7 +15,7 @@
               [:form
                {:on-submit (fn [e]
                              (.preventDefault e)
-                             (init-from-gist (-> e .-target (aget "gist") .-value)))}
+                             (init-from-gist r (-> e .-target (aget "gist") .-value)))}
                [:div
                 (mdl/textfield
                  {:style {:width "50rem"}}
@@ -43,25 +31,32 @@
      [:div date]
      (when [:div place])]))
 
-(rum/defc main < rum/reactive []
-  (if (rum/react (subscription [:initialized :db]))
-    (let [decks        (db/decks)
-          deck         (db/deck (rum/react (subscription [:current :deck-id])))
+(rum/defc main < rum/reactive [r]
+  (if (rum/react (scrum/subscription r [:initialized :db]))
+    (let [decks        @(scrum/subscription r [:initialized :decks])
+          deck-id      (rum/react (scrum/subscription r [:current :deck-id]))
+          deck         (some #(and (= deck-id (:db/id %)) %) decks)
           slides       (:deck/slides deck)
           hash         (-> js/document .-location .-hash)]
-      (dispatch! :current :slides-count (count slides))
+      (scrum/dispatch! r :current :slides-count (count slides))
       (events/start-keyboard-loop
-       {37 #(dispatch! :current :prev-slide)
-        39 #(dispatch! :current :next-slide)
-        32 #(dispatch! :current :next-slide)
-        83 #(dispatch! :search :toggle-active)}
-       {40 #(dispatch! :search :next-result)
-        38 #(dispatch! :search :prev-result)
-        13 #(dispatch! :search :activate-result)
-        27 #(dispatch! :search :toggle-active)})
+       {37 #(scrum/dispatch! r :current :prev-slide)
+        39 #(scrum/dispatch! r :current :next-slide)
+        32 #(scrum/dispatch! r :current :next-slide)
+        83 #(scrum/dispatch! r :search :toggle-active)}
+       {40 #(scrum/dispatch! r :search :next-result)
+        38 #(scrum/dispatch! r :search :prev-result)
+        13 #(let [[deck-id _ slide _]
+                  (get @(scrum/subscription r [:search :results])
+                       @(scrum/subscription r [:search :result]))]
+              (scrum/dispatch! r :current :deck-id deck-id)
+              (scrum/dispatch! r :current :slide slide)
+              (scrum/dispatch! r :search :toggle-active)
+              (scrum/dispatch! r :search :term ""))
+        27 #(scrum/dispatch! r :search :toggle-active)})
       [:div
        (if (= hash "#notes")
          (presentation/notes slides)
-         (presentation/main decks deck slides))
+         (presentation/main r decks deck slides))
        (footer deck)])
-    (gist-form)))
+    (gist-form r)))

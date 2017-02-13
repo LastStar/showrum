@@ -11,9 +11,8 @@
                  [rum                           "0.10.8"]
                  [rum-mdl                       "0.2.0"]
                  [datascript                    "0.15.5"]
-                 [org.roman01la/scrum           "0.1.0-SNAPSHOT"]
-                 [binaryage/devtools            "0.9.0"          :scope "test"]
-                 [binaryage/dirac               "1.1.3"          :scope "test"]
+                 [binaryage/devtools            "0.9.1"          :scope "test"]
+                 [binaryage/dirac               "1.1.4"          :scope "test"]
                  [powerlaces/boot-cljs-devtools "0.2.0"          :scope "test"]
                  [crisptrutski/boot-cljs-test   "0.3.0"          :scope "test"]
                  [org.martinklepsch/boot-garden "1.2.5-3"        :scope "test"]])
