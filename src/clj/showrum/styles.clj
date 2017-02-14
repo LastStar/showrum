@@ -104,7 +104,6 @@
               :content "\"\u00A0\""
               :background-color grey}]]]]
          [:&.main-header
-          {:margin-left "5vw"}
           [:h1 {:font-size "10rem"
                 :font-weight 900
                 :font-variant :none

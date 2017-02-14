@@ -1,117 +1,64 @@
 (ns showrum.views.navigation
   (:require [rum.core :as rum]
             [rum.mdl :as mdl]
-            [showrum.state :as state]
-            [showrum.db :as db]))
+            [scrum.core :as scrum]
+            [showrum.views.search :as search]))
 
 (rum/defc slides-counter < rum/reactive
-  [slides-count]
-  [:div.counter (str (rum/react state/current-slide) " / " slides-count)])
+  [r slides-count]
+  [:div.counter (str (rum/react (scrum/subscription r [:current :slide])) " / " slides-count)])
 
-(rum/defc deck-navigation < rum/reactive
-  [decks]
+(rum/defc deck-chooser < rum/reactive
+  [r decks]
   [:nav.decks
    {:width (str (count decks) "2vw")}
-   (for [[id _ title] decks]
+   (for [{:keys [:db/id :deck/title]} decks]
      [:div
       {:key id}
       (mdl/button
        {:mdl      [:ripple]
-        :disabled (= (rum/react state/current-deck-id) id)
-        :on-click (fn [e] (state/set-deck-id id))}
+        :disabled (= (rum/react (scrum/subscription r [:current :deck-id])) id)
+        :on-click #(scrum/dispatch! r :current :deck-id id)}
        title)])])
 
 (rum/defc slide-navigation < rum/reactive
-  [slide slides-count]
-  [:nav.slides
-   (let [active (and (> (rum/react state/current-slide) 1) :active)]
-     (mdl/button
-      {:mdl      [:fab :mini-fab :ripple]
-       :on-click (when active #(state/prev-slide))
-       :disabled (not active)}
-      (mdl/icon "navigate_before")))
-   (let [active (and (< (rum/react state/current-slide) slides-count) :active)]
-     (mdl/button
-      {:mdl      [:fab :mini-fab :ripple]
-       :on-click (when active #(state/next-slide))
-       :disabled (not active)}
-      (mdl/icon "navigate_next")))])
+  [r slide slides-count]
+  (let [current-slide (rum/react (scrum/subscription r [:current :slide]))]
+    [:nav.slides
+     (let [active (and (> current-slide 1) :active)]
+       (mdl/button
+        {:mdl      [:fab :mini-fab :ripple]
+         :on-click (when active #(scrum/dispatch! r :current :prev-slide))
+         :disabled (not active)}
+        (mdl/icon "navigate_before")))
+     (let [active (and (< current-slide slides-count) :active)]
+       (mdl/button
+        {:mdl      [:fab :mini-fab :ripple]
+         :on-click (when active #(scrum/dispatch! r :current :next-slide))
+         :disabled (not active)}
+        (mdl/icon "navigate_next")))]))
 
-(rum/defcs reload-decks
-  []
+(rum/defc reload-decks
+  [r]
   [:nav.reload
    (mdl/button
     {:mdl      [:fab :mini-fab :ripple]
-     :on-click (fn [e] (state/db-cleared))}
+     :on-click (fn [e] (scrum/dispatch! r :initialized :clear-db))}
     (mdl/icon "refresh"))])
 
-(rum/defcs search-decks < rum/reactive
-  []
-  (let [mdl-v (remove nil? [:fab :mini-fab :ripple
-                            (when (rum/react state/searching) :accent)])]
-    [:nav.search
-     (mdl/button
-      {:mdl mdl-v
-       :on-click state/search-toggler}
-      (mdl/icon "search"))]))
-
-(rum/defc search-input-field < rum/reactive
-  []
-  [:div.search-input
-   (mdl/textfield
-    {:style {:width "50rem"}}
-    (mdl/textfield-input
-     {:type       "text"
-      :id         "search"
-      :value      (rum/react state/search-term)
-      :auto-focus true
-      :on-key-down #(when (contains? #{38 40} (.-keyCode %))
-                      (.preventDefault %))
-      :on-change  state/search-term-updater})
-    (mdl/textfield-label {:for "search"} "Search in the slide titles"))])
-
-(rum/defc search-results-list < rum/reactive
-  []
-  (let [term (rum/react state/search-term)]
-    (if (and term (not (empty? term)))
-      [:div.search-results
-       (let [search-results (rum/react state/search-results)]
-         (if (seq search-results)
-           (mdl/list
-            (let [current-result (rum/react state/search-result)]
-              (for [[id [deck-id deck-title slide-id slide-title]]
-                    (map-indexed (fn [i it] [i it]) search-results)]
-                (mdl/li
-                 {:key      (str id deck-id slide-id)
-                  :icon     "present_to_all"
-                  :class    (if (= id current-result) "active" "")
-                  :content  (str deck-title " - " slide-title)
-                  :on-mouse-enter #(state/set-result id)
-                  :on-mouse-leave #(state/set-result nil)
-                  :on-click #(state/activate-search-result deck-id slide-id)}))))
-           [:p
-            "No results for \""
-            [:strong (rum/react state/search-term)]
-            "\""]))])))
-
-(rum/defcs search-panel < rum/reactive
-  []
-  (if (rum/react state/searching)
-    [:div.search-panel
-     (search-input-field)
-     (search-results-list)]))
-
-(rum/defcs main <
-  rum/reactive
+(rum/defcs main < rum/reactive
   (rum/local false ::hovered)
   (rum/local nil ::timer)
-  [state slides decks]
+  [state r slide decks]
   (let [hovered       (::hovered state)
         timer         (::timer state)
-        slides-count  (count slides)
+        slides-count  (rum/react (scrum/subscription r [:current :slides-count]))
         clear-timer   #(when @timer (.clearTimeout js/window @timer))
-        current-slide (rum/react state/current-slide)
-        hover-class   (if (or @hovered (= current-slide 1) (= current-slide slides-count) (rum/react state/searching))
+        current-slide (rum/react (scrum/subscription r [:current :slide]))
+        hover-class   (if (or @hovered
+                              (= current-slide 1)
+                              (= current-slide slides-count)
+                              (rum/react (scrum/subscription r [:search :active])))
                         "hovered" "")]
     [:div.navigation
      {:class          hover-class
@@ -119,8 +66,8 @@
       :on-mouse-leave (fn [e]
                         (clear-timer)
                         (reset! timer (.setTimeout js/window #(reset! hovered false) 2000)))}
-     (reload-decks)
-     (search-decks)
-     (deck-navigation decks)
-     (slides-counter slides-count)
-     (slide-navigation slides slides-count)]))
+     (reload-decks r)
+     (search/button r)
+     (deck-chooser r decks)
+     (slides-counter r slides-count)
+     (slide-navigation r slide slides-count)]))
