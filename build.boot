@@ -10,6 +10,7 @@
                  [org.clojure/clojurescript     "1.9.293"]
                  [rum                           "0.10.8"]
                  [rum-mdl                       "0.2.0"]
+                 [org.roman01la/scrum           "1.0.0-SNAPSHOT"]
                  [datascript                    "0.15.5"]
                  [binaryage/devtools            "0.9.1"          :scope "test"]
                  [binaryage/dirac               "1.1.4"          :scope "test"]
