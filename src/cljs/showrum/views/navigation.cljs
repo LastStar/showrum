@@ -2,7 +2,7 @@
   (:require [rum.core :as rum]
             [rum.mdl :as mdl]
             [scrum.core :as scrum]
-            [showrum.views.search :as search]))
+            [pushy.core :refer [set-token!]]))
 
 (rum/defc slides-counter < rum/reactive
   [r slides-count]
@@ -39,17 +39,20 @@
        title)])])
 
 (rum/defc reload-decks
-  [r]
+  [r history]
   [:nav.reload
    (mdl/button
     {:mdl      [:fab :mini-fab :ripple]
-     :on-click (fn [e] (scrum/dispatch! r :initialized :clear-db))}
+     :on-click (fn [e]
+                 (scrum/dispatch! r :initialized :clear-db)
+                 (set-token! history "/")
+                 (scrum/dispatch! r :router :push [:index nil nil]))}
     (mdl/icon "refresh"))])
 
 (rum/defcs main < rum/reactive
   (rum/local false ::hovered)
   (rum/local nil ::timer)
-  [state r slide decks]
+  [state r history slides decks search-button]
   (let [hovered       (::hovered state)
         timer         (::timer state)
         slides-count  (rum/react (scrum/subscription r [:current :slides-count]))
@@ -71,8 +74,8 @@
      {:class          hover-class
       :on-mouse-enter (fn [e] (clear-timer) (reset! hovered true))
       :on-mouse-leave (fn [e] (clear-timer) (set-timer))}
-     (reload-decks r)
-     (search/button r)
+     (reload-decks r history)
+     (search-button)
      (deck-chooser r decks)
      (slides-counter r slides-count)
-     (slide-navigation r slide slides-count)]))
+     (slide-navigation r slides slides-count)]))

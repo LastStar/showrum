@@ -133,4 +133,6 @@
         :color :white
         :background-color black
         :font-family "\"Roboto\", \"Helvetica\", \"Arial\", sans-serif"
-        :font-weight 100}]])))
+        :font-weight 100}]
+      [:.loading
+       {:padding ["20vh" "20vw"]}]])))

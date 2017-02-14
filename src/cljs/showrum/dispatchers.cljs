@@ -1,5 +1,7 @@
 (ns showrum.dispatchers
-  (:require [scrum.core :as scrum]))
+  (:require
+   [scrum.core :as scrum]
+   [scrum.router.controller :as router]))
 
 (defmulti initialized identity)
 (defmulti current identity)
@@ -98,6 +100,7 @@
   (scrum/reconciler (atom {})
                     {:initialized initialized
                      :current current
-                     :search search}))
+                     :search search
+                     :router router/control}))
 
 (scrum/broadcast! reconciler :init)
