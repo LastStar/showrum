@@ -6,12 +6,16 @@
             [showrum.db :as db]))
 
 (defn- db-initialized
-  [r history decks-response]
+  [reconciler history decks-response]
   (-> decks-response .-target .getResponse parser/parse-decks db/init)
-  (scrum/dispatch! r :initialized :decks (db/decks))
-  (scrum/dispatch! r :initialized :db)
+  (scrum/dispatch! reconciler :initialized :decks (db/decks))
+  (scrum/dispatch! reconciler :initialized :db)
   (set-token! history "/presentation"))
 
 (defn init-from-gist
-  [r history gist-uri]
-  (xhrio/send gist-uri (partial db-initialized r history)))
+  [reconciler history gist-uri]
+  (xhrio/send gist-uri (partial db-initialized reconciler history)))
+
+(defn search
+  [reconciler term]
+  (scrum/dispatch! reconciler :search :results (db/search term)))

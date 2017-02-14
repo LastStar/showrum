@@ -2,8 +2,8 @@
   (:require [rum.core :as rum]
             [scrum.core :as scrum]))
 
-(rum/defc main < rum/reactive [r slides]
-  (let [current-slide (rum/react (scrum/subscription r [:current :slide]))]
+(rum/defc main < rum/reactive [reconciler slides]
+  (let [current-slide (rum/react (scrum/subscription reconciler [:current :slide]))]
     [:div.deck
      {:style {:width     (str (count slides) "00vw")
               :transform (str "translateX(-"

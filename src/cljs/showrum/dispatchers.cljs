@@ -19,10 +19,6 @@
   [_ _ db]
   (assoc db :db true))
 
-(defmethod initialized :clear-db
-  [_ _ db]
-  (assoc db :db false :keyboard-loop false))
-
 (defmethod initialized :decks
   [_ [decks] db]
   (assoc db :decks decks))
@@ -103,4 +99,7 @@
                      :search search
                      :router router/control}))
 
-(scrum/broadcast! reconciler :init)
+(defn reconcile
+  []
+  (scrum/broadcast! reconciler :init)
+  reconciler)
