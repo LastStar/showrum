@@ -7,7 +7,7 @@
                  [com.cemerick/piggieback       "0.2.1"          :scope "test"]
                  [org.clojure/tools.nrepl       "0.2.12"         :scope "test"]
                  [weasel                        "0.7.0"          :scope "test"]
-                 [org.clojure/clojurescript     "1.9.293"]
+                 [org.clojure/clojurescript     "1.9.473"]
                  [rum                           "0.10.8"]
                  [rum-mdl                       "0.2.0"]
                  [org.roman01la/scrum           "1.0.0-SNAPSHOT"]

@@ -63,6 +63,6 @@
   [r]
   (let [active (rum/react (scrum/subscription r [:search :active]))]
     (if active
-    [:div.search-panel
-     (input-field r)
-     (results-list r)])))
+      [:div.search-panel
+       (input-field r)
+       (results-list r)])))

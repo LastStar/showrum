@@ -8,19 +8,6 @@
   [r slides-count]
   [:div.counter (str (rum/react (scrum/subscription r [:current :slide])) " / " slides-count)])
 
-(rum/defc deck-chooser < rum/reactive
-  [r decks]
-  [:nav.decks
-   {:width (str (count decks) "2vw")}
-   (for [{:keys [:db/id :deck/title]} decks]
-     [:div
-      {:key id}
-      (mdl/button
-       {:mdl      [:ripple]
-        :disabled (= (rum/react (scrum/subscription r [:current :deck-id])) id)
-        :on-click #(scrum/dispatch! r :current :deck-id id)}
-       title)])])
-
 (rum/defc slide-navigation < rum/reactive
   [r slide slides-count]
   (let [current-slide (rum/react (scrum/subscription r [:current :slide]))]
@@ -38,6 +25,19 @@
          :disabled (not active)}
         (mdl/icon "navigate_next")))]))
 
+(rum/defc deck-chooser < rum/reactive
+  [r decks]
+  [:nav.decks
+   {:width (str (count decks) "2vw")}
+   (for [{:keys [:db/id :deck/title]} decks]
+     [:div
+      {:key id}
+      (mdl/button
+       {:mdl      [:ripple]
+        :disabled (= (rum/react (scrum/subscription r [:current :deck-id])) id)
+        :on-click #(scrum/dispatch! r :current :deck-id id)}
+       title)])])
+
 (rum/defc reload-decks
   [r]
   [:nav.reload
@@ -53,19 +53,24 @@
   (let [hovered       (::hovered state)
         timer         (::timer state)
         slides-count  (rum/react (scrum/subscription r [:current :slides-count]))
+        timeout       2000
         clear-timer   #(when @timer (.clearTimeout js/window @timer))
+        set-timer     (fn []
+                        (reset! timer
+                                (.setTimeout js/window
+                                             #(reset! hovered false)
+                                             timeout)))
         current-slide (rum/react (scrum/subscription r [:current :slide]))
+        active (rum/react (scrum/subscription r [:search :active]))
         hover-class   (if (or @hovered
                               (= current-slide 1)
                               (= current-slide slides-count)
-                              (rum/react (scrum/subscription r [:search :active])))
+                              active)
                         "hovered" "")]
     [:div.navigation
      {:class          hover-class
       :on-mouse-enter (fn [e] (clear-timer) (reset! hovered true))
-      :on-mouse-leave (fn [e]
-                        (clear-timer)
-                        (reset! timer (.setTimeout js/window #(reset! hovered false) 2000)))}
+      :on-mouse-leave (fn [e] (clear-timer) (set-timer))}
      (reload-decks r)
      (search/button r)
      (deck-chooser r decks)
