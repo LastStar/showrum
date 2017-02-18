@@ -14,8 +14,14 @@
 
 (defn init-from-gist
   [reconciler history gist-uri]
+  (scrum/dispatch! reconciler :initialized :gist)
   (xhrio/send gist-uri (partial db-initialized reconciler history)))
 
 (defn search
   [reconciler term]
   (scrum/dispatch! reconciler :search :results (db/search term)))
+
+(defn go-home
+  [reconciler history]
+  (set-token! history "/")
+  (scrum/dispatch! reconciler :router :push [:index nil nil]))

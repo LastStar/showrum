@@ -2,7 +2,7 @@
   (:require [rum.core :as rum]
             [rum.mdl :as mdl]
             [scrum.core :as scrum]
-            [pushy.core :refer [set-token!]]))
+            [showrum.effects :refer [go-home]]))
 
 (rum/defc slides-counter < rum/reactive
   [reconciler slides-count]
@@ -44,10 +44,9 @@
    (mdl/button
     {:mdl      [:fab :mini-fab :ripple]
      :on-click (fn [e]
+                 (go-home reconciler history)
                  (scrum/dispatch! reconciler :initialized :init)
-                 (scrum/dispatch! reconciler :current :init)
-                 (set-token! history "/")
-                 (scrum/dispatch! reconciler :router :push [:index nil nil]))}
+                 (scrum/dispatch! reconciler :current :init))}
     (mdl/icon "refresh"))])
 
 (rum/defcs main < rum/reactive

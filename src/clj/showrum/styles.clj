@@ -135,4 +135,4 @@
         :font-family "\"Roboto\", \"Helvetica\", \"Arial\", sans-serif"
         :font-weight 100}]
       [:.loading
-       {:padding ["20vh" "20vw"]}]])))
+       {:padding [["20vh" "20vw"]]}]])))
