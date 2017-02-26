@@ -3,10 +3,12 @@
             [rum.mdl :as mdl]
             [scrum.core :as scrum]
             [showrum.events :as events]
-            [showrum.effects :refer [init-from-gist]]
+            [showrum.effects :refer [init-from-gist go-home]]
+            [showrum.views.navigation :as navigation]
+            [showrum.views.search :as search]
             [showrum.views.presentation :as presentation]))
 
-(rum/defc gist-form [r]
+(rum/defc gist-form [reconciler history]
   [:div.gist
    (mdl/grid
     (mdl/cell {:mdl [:2]})
@@ -15,7 +17,7 @@
               [:form
                {:on-submit (fn [e]
                              (.preventDefault e)
-                             (init-from-gist r (-> e .-target (aget "gist") .-value)))}
+                             (init-from-gist reconciler history (-> e .-target (aget "gist") .-value)))}
                [:div
                 (mdl/textfield
                  {:style {:width "50rem"}}
@@ -31,30 +33,39 @@
      [:div date]
      (when [:div place])]))
 
-(rum/defc main < rum/reactive [r]
-  (if (rum/react (scrum/subscription r [:initialized :db]))
-    (let [decks        @(scrum/subscription r [:initialized :decks])
-          deck-id      (rum/react (scrum/subscription r [:current :deck-id]))
-          deck         (some #(and (= deck-id (:db/id %)) %) decks)
-          slides       (:deck/slides deck)
-          hash         (-> js/document .-location .-hash)]
-      (scrum/dispatch! r :current :slides-count (count slides))
-      (events/start-keyboard-loop
-       {37 #(scrum/dispatch! r :current :prev-slide)
-        39 #(scrum/dispatch! r :current :next-slide)
-        32 #(scrum/dispatch! r :current :next-slide)
-        83 #(scrum/dispatch! r :search :toggle-active)}
-       {40 #(scrum/dispatch! r :search :next-result)
-        38 #(scrum/dispatch! r :search :prev-result)
-        13 #(let [[deck-id _ slide _]
-                  (get @(scrum/subscription r [:search :results])
-                       @(scrum/subscription r [:search :result]))]
-              (scrum/dispatch! r :current :deck-id deck-id)
-              (scrum/dispatch! r :current :slide slide)
-              (scrum/dispatch! r :search :toggle-active)
-              (scrum/dispatch! r :search :term ""))
-        27 #(scrum/dispatch! r :search :toggle-active)})
-      [:div
-       (presentation/main r decks deck slides)
-       (footer deck)])
-    (gist-form r)))
+(rum/defc loading []
+  [:div.loading
+   [:h2 "Initializing DB"]
+   (mdl/spinner {:is-active true})])
+
+(rum/defc main < rum/reactive [reconciler history]
+  (let [[route params query]
+        (rum/react (scrum/subscription reconciler [:router :route]))]
+    (case route
+      :index
+      (do
+        (if-let [url (:url query)]
+          (do
+            (init-from-gist reconciler history url)
+            (loading))
+          (gist-form reconciler history)))
+      :presentation
+      (if (rum/react (scrum/subscription reconciler [:initialized :db]))
+        (let [decks        @(scrum/subscription reconciler [:initialized :decks])
+              deck-id      (rum/react (scrum/subscription reconciler [:current :deck-id]))
+              deck         (some #(and (= deck-id (:db/id %)) %) decks)
+              slides       (:deck/slides deck)
+              hash         (-> js/document .-location .-hash)]
+          (scrum/dispatch! reconciler :current :slides-count (count slides))
+          (events/start-keyboard-loop reconciler)
+          [:div
+           [:div.page
+            (navigation/main reconciler history slides decks
+                             #(search/button reconciler))
+            (search/main reconciler)
+            (presentation/main reconciler slides)]
+           (footer deck)])
+        (do
+          (when-not (rum/react (scrum/subscription reconciler [:initialized :gist]))
+            (go-home reconciler history))
+          (loading))))))

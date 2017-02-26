@@ -50,7 +50,7 @@
   ([doc order]
    (let [slides (map-indexed
                  (fn [i item] (assoc (parse-slide item (inc i))
-                                     :db/id (- (+ 10 (* order 10) i))))
+                                     :db/id (- (+ 20 (* order 20) i))))
                  (rest (remove empty? (map trim (split doc #"\n---\n")))))
          deck (assoc (parse-preamble doc)
                      :db/id (- order)

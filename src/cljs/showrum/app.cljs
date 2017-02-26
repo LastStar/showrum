@@ -1,9 +1,12 @@
 (ns showrum.app
   (:require [rum.core :as rum]
             [scrum.core :as scrum]
-            [showrum.dispatchers :refer [reconciler]]
-            [showrum.views :refer [main]]))
+            [showrum.dispatchers :as dispatchers]
+            [showrum.routes :as routes]
+            [showrum.views :as views]))
 
 (defn init []
-  (rum/mount (main reconciler)
-             (. js/document (getElementById "container"))))
+  (let [reconciler (dispatchers/reconcile)
+        history (routes/load reconciler)]
+    (rum/mount (views/main reconciler history)
+               (. js/document (getElementById "container")))))

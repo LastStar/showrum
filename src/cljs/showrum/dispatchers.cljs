@@ -1,5 +1,7 @@
 (ns showrum.dispatchers
-  (:require [scrum.core :as scrum]))
+  (:require
+   [scrum.core :as scrum]
+   [scrum.router.controller :as router]))
 
 (defmulti initialized identity)
 (defmulti current identity)
@@ -7,7 +9,7 @@
 
 (defmethod initialized :init
   [_ _ db]
-  (assoc db :db false :keyboard-loop false))
+  (assoc db :gist false :db false :keyboard-loop false))
 
 (defmethod initialized :keyboard-loop
   [_ _ db]
@@ -17,9 +19,9 @@
   [_ _ db]
   (assoc db :db true))
 
-(defmethod initialized :clear-db
-  [_ _ db]
-  (assoc db :db false :keyboard-loop false))
+(defmethod initialized :gist
+  [_ _ gist]
+  (assoc gist :gist true))
 
 (defmethod initialized :decks
   [_ [decks] db]
@@ -98,6 +100,10 @@
   (scrum/reconciler (atom {})
                     {:initialized initialized
                      :current current
-                     :search search}))
+                     :search search
+                     :router router/control}))
 
-(scrum/broadcast! reconciler :init)
+(defn reconcile
+  []
+  (scrum/broadcast! reconciler :init)
+  reconciler)
