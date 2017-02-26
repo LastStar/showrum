@@ -1,9 +1,10 @@
 (ns showrum.views.presentation
   (:require [rum.core :as rum]
-            [scrum.core :as scrum]))
+            [beicon.core :as rx]))
 
-(rum/defc main < rum/reactive [reconciler slides]
-  (let [current-slide (rum/react (scrum/subscription reconciler [:current :slide]))]
+(rum/defc main < rum/reactive
+  [state slides]
+  (let [current-slide (rum/react (rum/cursor-in state [:current :slide]))]
     [:div.deck
      {:style {:width     (str (count slides) "00vw")
               :transform (str "translateX(-"

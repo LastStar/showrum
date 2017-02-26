@@ -1,22 +1,24 @@
 (ns showrum.views.search
   (:require [rum.core :as rum]
             [rum.mdl :as mdl]
-            [scrum.core :as scrum]
-            [showrum.effects :as effects]))
+            [beicon.core :as rx]
+            [showrum.events :as evs]))
 
 (rum/defc button < rum/reactive
-  [reconciler]
-  (let [active (rum/react (scrum/subscription reconciler [:search :active]))
+  [store]
+  (let [state (rx/to-atom state)
+        active (rum/react (rum/cursor-in state [:search :active]))
         mdl-v (remove nil? [:fab :mini-fab :ripple (when active :accent)])]
     [:nav.search
      (mdl/button
       {:mdl mdl-v
-       :on-click #(scrum/dispatch! reconciler :search :toggle-active)}
+       :on-click #(evs/emit-to! store :search :toggle-active)}
       (mdl/icon "search"))]))
 
 (rum/defc input-field < rum/reactive
-  [reconciler]
-  (let [term (rum/react (scrum/subscription reconciler [:search :term]))]
+  [store]
+  (let [state (rx/to-atom store)
+        term (rum/react (rum/cursor-in state [:search :term]))]
     [:div.search-input
      (mdl/textfield
       {:style {:width "50rem"}}
@@ -31,19 +33,19 @@
                       (.preventDefault e)
                       (.stopPropagation e)
                       (let [term (-> e .-target .-value)]
-                        (scrum/dispatch! reconciler :search :term term)
-                        (effects/search reconciler term)))})
+                        (evs/emit-to! store :search/term term)))})
       (mdl/textfield-label {:for "search"} "Search in the slide titles"))]))
 
 (rum/defc results-list < rum/reactive
-  [reconciler]
-  (let [term (rum/react (scrum/subscription reconciler [:search :term]))]
+  [store]
+  (let [state (rx/to-atom store)
+        term (rum/react (rum/cursor-in state [:search :term]))]
     (if (and term (not (empty? term)))
       [:div.search-results
-       (let [results (rum/react (scrum/subscription reconciler [:search :results]))]
+       (let [results (rum/react (rum/cursor-in state [:search :results]))]
          (if (seq results)
            (mdl/list
-            (let [current-result (rum/react (scrum/subscription reconciler [:search :result]))]
+            (let [current-result (rum/react (rum/cursor-in state [:search :result]))]
               (for [[id [deck-id deck-title slide-id slide-title]]
                     (map-indexed (fn [i it] [i it]) results)]
                 (mdl/li
@@ -51,18 +53,19 @@
                   :icon           "present_to_all"
                   :class          (if (= id current-result) "active" "")
                   :content        (str deck-title " - " slide-title)
-                  :on-mouse-enter #(scrum/dispatch! reconciler :search :active-result id)
-                  :on-mouse-leave #(scrum/dispatch! reconciler :search :active-result nil)
+                  :on-mouse-enter #(evs/emit-to! store :search/active-result id)
+                  :on-mouse-leave #(evs/emit-to! store :search/active-result nil)
                   :on-click       (fn [e]
-                                    (scrum/dispatch! reconciler :current :deck-id deck-id)
-                                    (scrum/dispatch! reconciler :current :slide slide-id)
-                                    (scrum/dispatch! reconciler :search :deactivate-and-clear))}))))
+                                    (evs/emit-to! store :current :deck-id deck-id)
+                                    (evs/emit-to! store :current :slide slide-id)
+                                    (evs/emit-to! store :search :deactivate-and-clear))}))))
            [:p "No results for \"" [:strong term] "\""]))])))
 
 (rum/defc main < rum/reactive
-  [reconciler]
-  (let [active (rum/react (scrum/subscription reconciler [:search :active]))]
+  [store]
+  (let [state (rx/to-atom store)
+        active (rum/react (rum/cursor-in state [:search :active]))]
     (if active
       [:div.search-panel
-       (input-field reconciler)
-       (results-list reconciler)])))
+       (input-field store)
+       (results-list store)])))

@@ -1,47 +1,96 @@
 (ns showrum.events
-  (:require-macros [cljs.core.async.macros :refer [go-loop]])
-  (:require [cljs.core.async :refer [put! chan]]
-            [scrum.core :as scrum]
-            [goog.events :as evs]
-            [goog.events.EventType :as EventType]))
+  (:require [potok.core :as ptk]))
 
-(def ^:private keydown-chan-events
-  (let [c (chan 1)]
-    (evs/listen js/window EventType/KEYDOWN #(put! c %)) c))
+(deftype InitializeKeyboardLoop []
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :keyboard-loop true)))
 
-(defn- in-presentation-map
-  [reconciler key]
-  (js/console.log reconciler key)
-  (get {37 #(scrum/dispatch! reconciler :current :prev-slide)
-        39 #(scrum/dispatch! reconciler :current :next-slide)
-        32 #(scrum/dispatch! reconciler :current :next-slide)
-        83 #(scrum/dispatch! reconciler :search :toggle-active)}
-       key))
+(deftype InitializeDB []
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :db true)))
 
-(defn- in-search-map
-  [reconciler key]
-  (get {40 #(scrum/dispatch! reconciler :search :next-result)
-        38 #(scrum/dispatch! reconciler :search :prev-result)
-        13 #(let [[deck-id _ slide _]
-                  (get @(scrum/subscription reconciler [:search :results])
-                       @(scrum/subscription reconciler [:search :result]))]
-              (scrum/dispatch! reconciler :current :deck-id deck-id)
-              (scrum/dispatch! reconciler :current :slide slide)
-              (scrum/dispatch! reconciler :search :toggle-active)
-              (scrum/dispatch! reconciler :search :term ""))
-        27 #(scrum/dispatch! reconciler :search :toggle-active)}
-       key))
+(deftype InitializeGist [gist]
+  ptk/UpdateEvent
+  (update [_ state]
+    (js/console.log "event sent state: " state " gist: " gist)
+    (assoc state :gist gist)))
 
-(defn start-keyboard-loop [reconciler]
-  (let [loop-running @(scrum/subscription reconciler [:initialized :keyboard-loop])]
-    (when-not loop-running
-      (scrum/dispatch! reconciler :initialized :keyboard-loop)
-      (go-loop []
-        (let [event (<! keydown-chan-events)
-              key (.-keyCode event)
-              loop-running @(scrum/subscription reconciler [:initialized :keyboard-loop])
-              active-search @(scrum/subscription reconciler [:search :active])]
-          (if active-search
-            (when-let [action (in-search-map reconciler key)] (action))
-            (when-let [action (in-presentation-map reconciler key)] (action)))
-          (when loop-running (recur)))))))
+(deftype InitializeDecks [decks]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :decks decks)))
+
+(deftype SetCurrentDeck [deck-id]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :slide 1 :deck-id deck-id)))
+
+(deftype SetCurrentSlide [slide-id]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :slide slide-id)))
+
+(deftype SetCurentSlidesCount [count]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :slides-count count)))
+
+(deftype NavigateNextSlide []
+  ptk/UpdateEvent
+  (update [_ state]
+    (if (< (get state :slide)
+         (get state :slides-count))
+    (update state :slide inc)
+    state)))
+
+(deftype NavigatePreviousSlide []
+  ptk/UpdateEvent
+  (update [_ state]
+    (if (> (get state :slide) 1)
+    (update state :slide dec)
+    state)))
+
+(deftype ToggleSeachPanel []
+  ptk/UpdateEvent
+  (update [_ state]
+    (update state :search/active not)))
+
+(deftype SetSearchTerm [term]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :search/result 0 :search/term term)))
+
+(deftype SetSearchResults [results]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :search/results (vec results))))
+
+(deftype SetActiveSearchResult [index]
+  ptk/UpdateEvent
+  (update [_ state]
+    (if (and (>= index 0)
+           (< index (count (get state :search/results))))
+    (assoc state :search/result index)
+    state)))
+
+(deftype NavigateNextSearchResult []
+  ptk/UpdateEvent
+  (update [_ state]
+    (if (< (get state :search/result)
+         (dec (count (get state :search/results))))
+    (update state :search/result inc)
+    state)))
+
+(deftype NavigatePreviousSearchResult []
+  ptk/UpdateEvent
+  (update [_ state]
+    (if (> (get state :result) 0)
+    (update state :search/result dec)
+    state)))
+
+(deftype ClearSearchTerm []
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :search/term "" :search/active false)))
