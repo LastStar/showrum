@@ -46,7 +46,7 @@
 (rum/defcs main < rum/reactive
   (rum/local false ::hovered)
   (rum/local nil ::timer)
-  [local-state store history slides decks search-button]
+  [local-state store slides decks search-button]
   (let [state         (rx/to-atom store)
         hovered       (::hovered local-state)
         timer         (::timer local-state)

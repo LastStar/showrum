@@ -1,21 +1,31 @@
 (ns showrum.events
-  (:require [potok.core :as ptk]))
+  (:require [potok.core :as ptk]
+            [beicon.core :as rxt]
+            [promesa.core :as p]
+            [httpurr.client :as http]
+            [httpurr.client.xhr :refer [client]]
+            [showrum.parser :as parser]))
 
-(deftype InitializeKeyboardLoop []
+(deftype SetGist [gist]
   ptk/UpdateEvent
   (update [_ state]
-    (assoc state :keyboard-loop true)))
+    (assoc state :gist gist)))
 
-(deftype InitializeDB []
+
+(deftype SetGistContent [gist-content]
   ptk/UpdateEvent
   (update [_ state]
-    (assoc state :db true)))
+    (-> state
+        (assoc :gist-content gist-content)
+        (assoc :db (parser/parse-decks (:body gist-content))))))
 
 (deftype InitializeGist [gist]
-  ptk/UpdateEvent
-  (update [_ state]
-    (js/console.log "event sent state: " state " gist: " gist)
-    (assoc state :gist gist)))
+  ptk/WatchEvent
+  (watch [_ state stream]
+    (let [get-promise (http/get client gist)]
+      (rxt/merge
+       (rxt/from-promise (p/map ->SetGistContent get-promise))
+       (rxt/just (->SetGist gist))))))
 
 (deftype InitializeDecks [decks]
   ptk/UpdateEvent
@@ -41,16 +51,16 @@
   ptk/UpdateEvent
   (update [_ state]
     (if (< (get state :slide)
-         (get state :slides-count))
-    (update state :slide inc)
-    state)))
+           (get state :slides-count))
+      (update state :slide inc)
+      state)))
 
 (deftype NavigatePreviousSlide []
   ptk/UpdateEvent
   (update [_ state]
     (if (> (get state :slide) 1)
-    (update state :slide dec)
-    state)))
+      (update state :slide dec)
+      state)))
 
 (deftype ToggleSeachPanel []
   ptk/UpdateEvent
@@ -71,24 +81,24 @@
   ptk/UpdateEvent
   (update [_ state]
     (if (and (>= index 0)
-           (< index (count (get state :search/results))))
-    (assoc state :search/result index)
-    state)))
+             (< index (count (get state :search/results))))
+      (assoc state :search/result index)
+      state)))
 
 (deftype NavigateNextSearchResult []
   ptk/UpdateEvent
   (update [_ state]
     (if (< (get state :search/result)
-         (dec (count (get state :search/results))))
-    (update state :search/result inc)
-    state)))
+           (dec (count (get state :search/results))))
+      (update state :search/result inc)
+      state)))
 
 (deftype NavigatePreviousSearchResult []
   ptk/UpdateEvent
   (update [_ state]
     (if (> (get state :result) 0)
-    (update state :search/result dec)
-    state)))
+      (update state :search/result dec)
+      state)))
 
 (deftype ClearSearchTerm []
   ptk/UpdateEvent

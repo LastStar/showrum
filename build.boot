@@ -12,9 +12,10 @@
                  [rum-mdl                       "0.2.0"]
                  [funcool/potok                 "1.1.0"]
                  [funcool/bide                  "1.4.0"]
+                 [funcool/httpurr               "0.6.2"]
                  [kibu/pushy                    "0.3.6"]
-                 [binaryage/devtools            "0.9.1"          :scope "test"]
-                 [binaryage/dirac               "1.1.5"          :scope "test"]
+                 [binaryage/devtools            "0.9.2"          :scope "test"]
+                 [binaryage/dirac               "1.1.6"          :scope "test"]
                  [powerlaces/boot-cljs-devtools "0.2.0"          :scope "test"]
                  [crisptrutski/boot-cljs-test   "0.3.0"          :scope "test"]
                  [org.martinklepsch/boot-garden "1.2.5-3"        :scope "test"]])
