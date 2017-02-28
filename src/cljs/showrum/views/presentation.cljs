@@ -4,15 +4,16 @@
 
 (rum/defc main < rum/reactive
   [state slides]
-  (let [current-slide (rum/react (rum/cursor-in state [:current :slide]))]
+  (js/console.log slides)
+  (let [current-slide (rum/react (rum/cursor-in state [:slide]))]
     [:div.deck
      {:style {:width     (str (count slides) "00vw")
               :transform (str "translateX(-"
                               (dec current-slide) "00vw)")}}
-     (for [{:keys [:db/id :slide/order :slide/type :slide/bullets
+     (for [{:keys [:slide/order :slide/type :slide/bullets
                    :slide/title :slide/text :slide/image]} (sort-by :slide/order slides)]
        [:div.slide
-        {:key id :class (name type)}
+        {:key order :class (name type)}
         [:h1.title title]
         (case type
           :type/bullets [:ul (for [item bullets] [:li {:key item} item])]

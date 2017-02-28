@@ -1,19 +1,20 @@
 (ns showrum.views.search
   (:require [rum.core :as rum]
             [rum.mdl :as mdl]
-            [beicon.core :as rx]
-            [showrum.events :as evs]))
+            [beicon.core :as rxt]
+            [potok.core :as ptk]
+            [showrum.events :refer [ToggleSeachPanel]]))
 
-;; (rum/defc button < rum/reactive
-;;   [store]
-;;   (let [state (rx/to-atom state)
-;;         active (rum/react (rum/cursor-in state [:search :active]))
-;;         mdl-v (remove nil? [:fab :mini-fab :ripple (when active :accent)])]
-;;     [:nav.search
-;;      (mdl/button
-;;       {:mdl mdl-v
-;;        :on-click #(evs/emit-to! store :search :toggle-active)}
-;;       (mdl/icon "search"))]))
+(rum/defc button < rum/reactive
+  [store]
+  (let [state (rxt/to-atom store)
+        active (rum/react (rum/cursor-in state [:search/active]))
+        mdl-v (remove nil? [:fab :mini-fab :ripple (when active :accent)])]
+    [:nav.search
+     (mdl/button
+      {:mdl mdl-v
+       :on-click #(ptk/emit! store (ToggleSeachPanel.))}
+      (mdl/icon "search"))]))
 
 ;; (rum/defc input-field < rum/reactive
 ;;   [store]
@@ -63,7 +64,7 @@
 
 (rum/defc main < rum/reactive
   [store]
-  (let [state (rx/to-atom store)
+  (let [state (rxt/to-atom store)
         active (rum/react (rum/cursor-in state [:search :active]))]
     (if active
       [:div.search-panel

@@ -4,8 +4,8 @@
 
 (defonce ^:private initial-state
   {:state {:gist false :db false :keyboard-loop false
-           :deck-id 1 :slide 1 :slides-count 0
-           :active false :term "" :results [] :result 0}})
+           :deck 1 :slide 1 :slides-count 0
+           :search/active false :search/term "" :search/results [] :search/result 0}})
 
 (defonce main
   (ptk/store initial-state))

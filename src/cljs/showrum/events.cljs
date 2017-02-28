@@ -15,9 +15,11 @@
 (deftype SetGistContent [gist-content]
   ptk/UpdateEvent
   (update [_ state]
-    (-> state
-        (assoc :gist-content gist-content)
-        (assoc :db (parser/parse-decks (:body gist-content))))))
+    (let [decks (parser/parse-decks (:body gist-content))]
+      (-> state
+          (assoc :gist-content gist-content)
+          (assoc :db decks)
+          (assoc :slides-count (count (:deck/slides (first decks))))))))
 
 (deftype InitializeGist [gist]
   ptk/WatchEvent
@@ -32,15 +34,15 @@
   (update [_ state]
     (assoc state :decks decks)))
 
-(deftype SetCurrentDeck [deck-id]
+(deftype SetCurrentDeck [deck]
   ptk/UpdateEvent
   (update [_ state]
-    (assoc state :slide 1 :deck-id deck-id)))
+    (assoc state :slide 1 :deck deck)))
 
-(deftype SetCurrentSlide [slide-id]
+(deftype SetCurrentSlide [slide]
   ptk/UpdateEvent
   (update [_ state]
-    (assoc state :slide slide-id)))
+    (assoc state :slide slide)))
 
 (deftype SetCurentSlidesCount [count]
   ptk/UpdateEvent

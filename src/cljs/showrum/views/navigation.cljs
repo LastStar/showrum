@@ -8,24 +8,24 @@
 
 (rum/defc slides-counter < rum/reactive
   [state slides-count]
-  [:div.counter (str (rum/react (rum/cursor-in state [:current :slide]))
-                     " / " slides-count)])
+  (let [current-slide (rum/react (rum/cursor-in state [:slide]))]
+    [:div.counter (str current-slide " / " slides-count)]))
 
 (rum/defc slide-navigation < rum/reactive
-  [store slide slides-count]
-  (let [state (rx/to-atom store)
-        current-slide (rum/react (rum/cursor-in state [:current :slide]))]
+  [store slides-count]
+  (let [state         (rx/to-atom store)
+        current-slide (rum/react (rum/cursor-in state [:slide]))]
     [:nav.slides
      (let [active (and (> current-slide 1) :active)]
        (mdl/button
         {:mdl      [:fab :mini-fab :ripple]
-         :on-click (when active #(ptk/emit! store (NavigateNextSlide.)))
+         :on-click (when active #(ptk/emit! store (NavigatePreviousSlide.)))
          :disabled (not active)}
         (mdl/icon "navigate_before")))
      (let [active (and (< current-slide slides-count) :active)]
        (mdl/button
         {:mdl      [:fab :mini-fab :ripple]
-         :on-click (when active #(ptk/emit! store (NavigatePreviousSlide.)))
+         :on-click (when active #(ptk/emit! store (NavigateNextSlide.)))
          :disabled (not active)}
         (mdl/icon "navigate_next")))]))
 
@@ -34,13 +34,13 @@
   [:nav.decks
    {:width (str (count decks) "2vw")}
    (let [state (rx/to-atom store)]
-     (for [{:keys [:db/id :deck/title]} decks]
+     (for [{:keys [:deck/order :deck/title]} decks]
        [:div
-        {:key id}
+        {:key order}
         (mdl/button
          {:mdl      [:ripple]
-          :disabled (= (rum/react (rum/cursor-in state [:current :deck-id])) id)
-          :on-click #(ptk/emit! store (SetCurrentDeck. id))}
+          :disabled (= (rum/react (rum/cursor-in state [:deck])) order)
+          :on-click #(ptk/emit! store (SetCurrentDeck. order))}
          title)]))])
 
 (rum/defcs main < rum/reactive
@@ -50,7 +50,7 @@
   (let [state         (rx/to-atom store)
         hovered       (::hovered local-state)
         timer         (::timer local-state)
-        slides-count  (rum/react (rum/cursor-in state [:current :slides-count]))
+        slides-count  (rum/react (rum/cursor-in state [:slides-count]))
         timeout       2000
         clear-timer   #(when @timer (.clearTimeout js/window @timer))
         set-timer     (fn []
@@ -71,5 +71,5 @@
       :on-mouse-leave (fn [e] (clear-timer) (set-timer))}
      (search-button)
      (deck-chooser store decks)
-     (slides-counter store slides-count)
-     (slide-navigation store slides slides-count)]))
+     (slides-counter state slides-count)
+     (slide-navigation store slides-count)]))

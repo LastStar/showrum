@@ -43,12 +43,18 @@
 
 
 (rum/defc main < rum/reactive [store]
-  (let [state (rxt/to-atom store)
-        gist-content (rum/react (rum/cursor-in state [:gist-content]))
-        db (rum/react (rum/cursor-in state [:db]))
+  (let [state            (rxt/to-atom store)
+        db               (rum/react (rum/cursor-in state [:db]))
         gist-initialized (rum/react (rum/cursor-in state [:gist]))]
-    (js/console.log db)
     [:div
      (if gist-initialized
-       (loading)
+       (if db
+         (let [current-deck (:deck @state)
+               deck         (some #(and (= current-deck (:deck/order %)) %) db)
+               slides (:deck/slides deck)]
+           [:div
+            [:div.page
+             (navigation/main store slides db #(search/button store))
+             (presentation/main state slides)]])
+         (loading))
        (gist-form store))]))

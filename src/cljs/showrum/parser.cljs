@@ -49,14 +49,11 @@
 (defn parse-deck
   ([doc order]
    (let [slides (map-indexed
-                 (fn [i item] (assoc (parse-slide item (inc i))
-                                     :db/id (- (+ 20 (* order 20) i))))
-                 (rest (remove empty? (map trim (split doc #"\n---\n")))))
-         deck (assoc (parse-preamble doc)
-                     :db/id (- order)
-                     :deck/order order
-                     :deck/slides (mapv #(:db/id  %) slides))]
-     (into [deck] slides)))
+                 (fn [i item] (parse-slide item (inc i)))
+                 (rest (remove empty? (map trim (split doc #"\n---\n")))))]
+     (assoc (parse-preamble doc)
+            :deck/order order
+            :deck/slides slides)))
   ([doc] (parse-deck doc 1)))
 
 (defn parse-decks [doc]
