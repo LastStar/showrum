@@ -17,7 +17,6 @@
               [:form
                {:on-submit (fn [e]
                              (.preventDefault e)
-                             (js/console.log "click")
                              (ptk/emit! store
                                         (InitializeGist.
                                          (-> e .-target (aget "gist") .-value))))}
@@ -44,17 +43,19 @@
 
 (rum/defc main < rum/reactive [store]
   (let [state            (rxt/to-atom store)
-        db               (rum/react (rum/cursor-in state [:db]))
-        gist-initialized (rum/react (rum/cursor-in state [:gist]))]
+        db               (rum/react (rum/cursor state :db))
+        gist-initialized (rum/react (rum/cursor state :gist))]
     [:div
      (if gist-initialized
        (if db
-         (let [current-deck (:deck @state)
-               deck         (some #(and (= current-deck (:deck/order %)) %) db)
-               slides (:deck/slides deck)]
+         (let [current-deck  (rum/react (rum/cursor state :deck))
+               current-slide (rum/react (rum/cursor state :slide))
+               deck          (some #(and (= current-deck (:deck/order %)) %) db)
+               slides        (:deck/slides deck)]
            [:div
             [:div.page
-             (navigation/main store slides db #(search/button store))
-             (presentation/main state slides)]])
+             (navigation/main store slides db #(search/button store) current-slide)
+             (search/main store)
+             (presentation/main slides current-slide)]])
          (loading))
        (gist-form store))]))
