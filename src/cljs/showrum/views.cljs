@@ -3,7 +3,7 @@
             [rum.mdl :as mdl]
             [beicon.core :as rxt]
             [potok.core :as ptk]
-            [showrum.events :refer [InitializeGist SetCurentSlidesCount]]
+            [showrum.events :refer [InitializeGist]]
             [showrum.views.navigation :as navigation]
             [showrum.views.search :as search]
             [showrum.views.presentation :as presentation]))
@@ -43,13 +43,13 @@
 
 (rum/defc main < rum/reactive [store]
   (let [state            (rxt/to-atom store)
-        db               (rum/react (rum/cursor state :db))
-        gist-initialized (rum/react (rum/cursor state :gist))]
+        db               (rum/react (rum/cursor state :db/decks))
+        gist-initialized (rum/react (rum/cursor state :db/gist))]
     [:div
      (if gist-initialized
        (if db
-         (let [current-deck  (rum/react (rum/cursor state :deck))
-               current-slide (rum/react (rum/cursor state :slide))
+         (let [current-deck  (rum/react (rum/cursor state :deck/current))
+               current-slide (rum/react (rum/cursor state :slide/current))
                deck          (some #(and (= current-deck (:deck/order %)) %) db)
                slides        (:deck/slides deck)]
            [:div

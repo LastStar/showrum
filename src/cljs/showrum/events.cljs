@@ -9,8 +9,7 @@
 (deftype ^:private SetGist [gist]
   ptk/UpdateEvent
   (update [_ state]
-    (assoc state :gist gist)))
-
+    (assoc state :db/gist gist)))
 
 (deftype ^:private SetFromGistContent [gist-content]
   ptk/UpdateEvent
@@ -23,9 +22,17 @@
           rows   (apply concat
                         (map flatfn decks))]
       (-> state
-          (assoc :db decks)
-          (assoc :rows rows)
-          (assoc :slides-count (count (:deck/slides (first decks))))))))
+          (assoc :db/decks decks)
+          (assoc :db/index rows)
+          (assoc :deck/slides-count (count (:deck/slides (first decks))))))))
+
+(deftype ^:private SetCurrentSlide [slide]
+  ptk/UpdateEvent
+  (update [_ state]
+    (if (and (<= slide (:deck/slides-count state))
+             (pos? slide))
+      (assoc state :slide/current slide)
+      state)))
 
 (deftype InitializeGist [gist]
   ptk/WatchEvent
@@ -35,39 +42,24 @@
        (rxt/from-promise (p/map ->SetFromGistContent get-promise))
        (rxt/just (->SetGist gist))))))
 
-;; Set current slides count
 (deftype SetCurrentDeck [deck]
   ptk/UpdateEvent
   (update [_ state]
-    (assoc state :slide 1 :deck deck
-           :slides-count (count (:deck/slides (some #(and (= deck (:deck/order %)) %) (:db state)))))))
+    (let [slides-count (count (:deck/slides
+                               (some #(and (= deck (:deck/order %)) %) (:db/decks state))))]
+      (js/console.log deck slides-count)
+      (assoc state :slide/current 1 :deck/current deck
+             :deck/slides-count slides-count))))
 
-(deftype SetCurentSlidesCount [count]
-  ptk/UpdateEvent
-  (update [_ state]
-    (assoc state :slides-count count)))
-
-(deftype SetCurrentSlide [slide]
-  ptk/UpdateEvent
-  (update [_ state]
-    (assoc state :slide slide)))
-
-;; Move logic to ^^^^
 (deftype NavigateNextSlide []
   ptk/WatchEvent
   (watch [_ state stream]
-    (let [slide (get state :slide)
-          new-slide (if (< (get state :slide) (get state :slides-count))
-                      (inc slide) slide)]
-      (rxt/just (->SetCurrentSlide new-slide)))))
+    (rxt/just (->SetCurrentSlide (inc (:slide/current state))))))
 
 (deftype NavigatePreviousSlide []
   ptk/WatchEvent
-  (watch [_ state stream]
-    (let [slide (get state :slide)
-          new-slide (if (> slide 1) (dec slide) slide)]
-      (rxt/just (->SetCurrentSlide new-slide)))))
-;; ^^^
+  (watch [_ {slide :slide/current} _]
+    (rxt/just (->SetCurrentSlide (dec slide)))))
 
 (deftype ToggleSearchPanel []
   ptk/UpdateEvent
@@ -87,15 +79,15 @@
 (deftype NavigateNextSearchResult []
   ptk/UpdateEvent
   (update [_ state]
-    (if (< (get state :search/result)
-           (dec (count (get state :search/results))))
+    (if (< (:search/result state)
+           (dec (count (:search/results state))))
       (update state :search/result inc)
       state)))
 
 (deftype NavigatePreviousSearchResult []
   ptk/UpdateEvent
   (update [_ state]
-    (if (> (get state :result) 0)
+    (if (> (:search/result state) 0)
       (update state :search/result dec)
       state)))
 
@@ -108,24 +100,52 @@
   ptk/UpdateEvent
   (update [_ state]
     (if (and (>= index 0)
-             (< index (count (get state :search/results))))
+             (< index (count (:search/results state))))
       (assoc state :search/result index)
       state)))
 
 (deftype ActivateSearchResult [index]
   ptk/WatchEvent
   (watch [_ state stream]
-    (let [[deck _ slide] (nth (:search/results state) index)]
+    (let [[deck _ slide _] (nth (:search/results state) index)]
       (rxt/merge
-       (rxt/just (SetCurrentDeck. deck))
-       (rxt/just (SetCurrentSlide. slide))
-       (rxt/just (ClearSearchTerm.))))))
+       (rxt/just (->SetCurrentDeck deck))
+       (rxt/just (->SetCurrentSlide slide))
+       (rxt/just (->ClearSearchTerm))))))
 
 (deftype SetSearchTerm [term]
   ptk/WatchEvent
   (watch [_ state stream]
     (rxt/of
-     (ClearSearchNavigation. term)
+     (->ClearSearchNavigation term)
      (let [tp (re-pattern (str "(?i).*\\b" term ".*"))
-           rs (filter #(or (re-matches tp (second %)) (re-matches tp (last %))) (:rows state))]
-       (SetSearchResults. rs)))))
+           rs (filter #(or (re-matches tp (second %)) (re-matches tp (last %))) (:db/index state))]
+       (->SetSearchResults rs)))))
+
+(defn- in-presentation-map
+  [key]
+  (get {37 (->NavigatePreviousSlide)
+        39 (->NavigateNextSlide)
+        32 (->NavigateNextSlide)
+        83 (->ToggleSearchPanel)}
+       key))
+
+(defn- in-search-map
+  [key result]
+  (get {40 (->NavigateNextSearchResult)
+        38 (->NavigatePreviousSearchResult)
+        13 (->ActivateSearchResult result)
+        27 (->ToggleSearchPanel)}
+       key))
+
+(deftype KeyPressed [event]
+  ptk/WatchEvent
+  (watch [_ {:keys [:db/decks :search/active :search/result]} _]
+    (if decks
+      (let [key (.-keyCode event)]
+        (if active
+          (if-let [event (in-search-map key result)]
+            (rxt/just event) (rxt/empty))
+          (if-let [event (in-presentation-map key)]
+            (rxt/just event) (rxt/empty))))
+      (rxt/empty))))

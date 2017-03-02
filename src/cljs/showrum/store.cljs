@@ -3,8 +3,8 @@
             [potok.core :as ptk]))
 
 (defonce ^:private initial-state
-  {:state {:gist false :db false :keyboard-loop false
-           :deck 1 :slide 1 :slides-count 0
+  {:state {:db/gist false :db/decks false
+           :deck/current 1 :slide/current 1 :deck/slides-count 0
            :search/active false :search/term "" :search/results [] :search/result 0}})
 
 (defonce main
