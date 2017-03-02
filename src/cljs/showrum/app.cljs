@@ -12,6 +12,6 @@
     (events/removeAll js/document EventType.KEYDOWN)
     (events/listen js/document
                    EventType.KEYDOWN
-                   #(ptk/emit! store (KeyPressed. %))) 
+                   #(ptk/emit! store (KeyPressed. (.-keyCode %)))) 
     (rum/mount (views/main store)
                (js/document.getElementById "container"))))

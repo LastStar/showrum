@@ -29,7 +29,7 @@
         :id         "search"
         :value      term
         :auto-focus true
-        :on-key-down #(when (contains? #{38 40} (.-keyCode %))
+        :on-key-down #(when (#{38 40} (.-keyCode %))
                         (.preventDefault %))
         :on-change  (fn [e]
                       (.preventDefault e)
