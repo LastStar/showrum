@@ -36,11 +36,10 @@
 
 (deftype SetCurrentDeck [deck]
   ptk/UpdateEvent
-  (update [_ state]
-    (let [slides-count (count (:deck/slides
-                               (some #(and (= deck (:deck/order %)) %)
-                                     (:db/decks state))))]
-      (assoc state :slide/current 1 :deck/current deck :deck/slides-count slides-count))))
+  (update [_ {decks :db/decks :as state}]
+    (let [sc (count (:deck/slides
+                     (some #(and (= deck (:deck/order %)) %) decks)))]
+      (assoc state :slide/current 1 :deck/current deck :deck/slides-count sc))))
 
 (deftype ^:private SetCurrentSlide [slide]
   ptk/UpdateEvent
@@ -51,8 +50,8 @@
 
 (deftype NavigateNextSlide []
   ptk/WatchEvent
-  (watch [_ state stream]
-    (rxt/just (->SetCurrentSlide (inc (:slide/current state))))))
+  (watch [_ {slide :slide/current} _]
+    (rxt/just (->SetCurrentSlide (inc slide)))))
 
 (deftype NavigatePreviousSlide []
   ptk/WatchEvent
@@ -71,9 +70,8 @@
 
 (deftype SetActiveSearchResult [index]
   ptk/UpdateEvent
-  (update [_ state]
-    (if (and (>= index 0)
-             (< index (count (:search/results state))))
+  (update [_ {count :search/results-count :as state}]
+    (if (<= 0 index (dec count))
       (assoc state :search/result index)
       state)))
 
@@ -94,8 +92,8 @@
 
 (deftype ActivateSearchResult [index]
   ptk/WatchEvent
-  (watch [_ state stream]
-    (let [[deck _ slide _] (nth (:search/results state) index)]
+  (watch [_ {results :search/results} stream]
+    (let [[deck _ slide _] (nth results index)]
       (rxt/of
        (->SetCurrentDeck deck)
        (->SetCurrentSlide slide)
@@ -106,14 +104,20 @@
   (update [_ state]
     (assoc state :search/results (vec results))))
 
+(deftype ^:private SetSearchResultsCount [count]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :search/results-count count)))
+
 (deftype SetSearchTerm [term]
   ptk/WatchEvent
   (watch [_ {index :db/index} stream]
-    (rxt/of
-     (->ClearSearchNavigation term)
-     (let [tp (re-pattern (str "(?i).*\\b" term ".*"))
-           rs (filter #(or (re-matches tp (second %))
-                           (re-matches tp (last %))) index)]
+    (let [tp (re-pattern (str "(?i).*\\b" term ".*"))
+          rs (filter #(or (re-matches tp (second %))
+                          (re-matches tp (last %))) index)]
+      (rxt/of
+       (->ClearSearchNavigation term)
+       (->SetSearchResultsCount (count rs))
        (->SetSearchResults rs)))))
 
 (defn- in-presentation-map

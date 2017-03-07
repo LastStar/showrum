@@ -3,8 +3,8 @@
             [rum.mdl :as mdl]
             [beicon.core :as rxt]
             [potok.core :as ptk]
-            [showrum.events :refer [ToggleSearchPanel SetSearchTerm
-                                    SetActiveSearchResult ActivateSearchResult]]))
+            [showrum.events :refer [->ToggleSearchPanel ->SetSearchTerm
+                                    ->SetActiveSearchResult ->ActivateSearchResult]]))
 
 (rum/defc button < rum/reactive
   [store]
@@ -14,7 +14,7 @@
     [:nav.search
      (mdl/button
       {:mdl mdl-v
-       :on-click #(ptk/emit! store (ToggleSearchPanel.))}
+       :on-click #(ptk/emit! store (->ToggleSearchPanel))}
       (mdl/icon "search"))]))
 
 (rum/defc input-field < rum/reactive
@@ -35,7 +35,7 @@
                       (.preventDefault e)
                       (.stopPropagation e)
                       (let [term (-> e .-target .-value)]
-                        (ptk/emit! store  (SetSearchTerm. term))))})
+                        (ptk/emit! store  (->SetSearchTerm term))))})
       (mdl/textfield-label {:for "search"} "Search in the slide titles"))]))
 
 (rum/defc results-list < rum/reactive
@@ -55,9 +55,9 @@
                   :icon           "present_to_all"
                   :class          (if (= id current-result) "active" "")
                   :content        (str deck-title " - " slide-title)
-                  :on-mouse-enter #(ptk/emit! store (SetActiveSearchResult. id))
-                  :on-mouse-leave #(ptk/emit! store (SetActiveSearchResult. nil))
-                  :on-click       #(ptk/emit! store (ActivateSearchResult. id))}))))
+                  :on-mouse-enter #(ptk/emit! store (->SetActiveSearchResult id))
+                  :on-mouse-leave #(ptk/emit! store (->SetActiveSearchResult nil))
+                  :on-click       #(ptk/emit! store (->ActivateSearchResult id))}))))
            [:p "No results for \"" [:strong term] "\""]))])))
 
 (rum/defc main < rum/reactive
