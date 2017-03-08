@@ -1,47 +1,148 @@
 (ns showrum.events
-  (:require-macros [cljs.core.async.macros :refer [go-loop]])
-  (:require [cljs.core.async :refer [put! chan]]
-            [scrum.core :as scrum]
-            [goog.events :as evs]
-            [goog.events.EventType :as EventType]))
+  (:require [potok.core :as ptk]
+            [beicon.core :as rxt]
+            [promesa.core :as p]
+            [httpurr.client :as http]
+            [httpurr.client.xhr :refer [client]]
+            [showrum.parser :as parser]))
 
-(def ^:private keydown-chan-events
-  (let [c (chan 1)]
-    (evs/listen js/window EventType/KEYDOWN #(put! c %)) c))
+(deftype ^:private SetGist [gist]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :db/gist gist)))
+
+(deftype ^:private SetFromGistContent [gist-content]
+  ptk/UpdateEvent
+  (update [_ state]
+    (let [decks  (parser/parse-decks (:body gist-content))
+          flatfn (fn [d]
+                   (map #(vector (:deck/order d) (:deck/title d)
+                                 (:slide/order %) (:slide/title %))
+                        (:deck/slides d)))
+          rows   (apply concat
+                        (map flatfn decks))]
+      (-> state
+          (assoc :db/decks decks)
+          (assoc :db/index rows)
+          (assoc :deck/slides-count (count (:deck/slides (first decks))))))))
+
+(deftype InitializeGist [gist]
+  ptk/WatchEvent
+  (watch [_ state stream]
+    (let [get-promise (http/get client gist)]
+      (rxt/merge
+       (rxt/from-promise (p/map ->SetFromGistContent get-promise))
+       (rxt/just (->SetGist gist))))))
+
+(deftype SetCurrentDeck [deck]
+  ptk/UpdateEvent
+  (update [_ {decks :db/decks :as state}]
+    (let [sc (count (:deck/slides
+                     (some #(and (= deck (:deck/order %)) %) decks)))]
+      (assoc state :slide/current 1 :deck/current deck :deck/slides-count sc))))
+
+(deftype ^:private SetCurrentSlide [slide]
+  ptk/UpdateEvent
+  (update [_ state]
+    (if (<= 1 slide (:deck/slides-count state))
+      (assoc state :slide/current slide)
+      state)))
+
+(deftype NavigateNextSlide []
+  ptk/WatchEvent
+  (watch [_ {slide :slide/current} _]
+    (rxt/just (->SetCurrentSlide (inc slide)))))
+
+(deftype NavigatePreviousSlide []
+  ptk/WatchEvent
+  (watch [_ {slide :slide/current} _]
+    (rxt/just (->SetCurrentSlide (dec slide)))))
+
+(deftype ToggleSearchPanel []
+  ptk/UpdateEvent
+  (update [_ state]
+    (update state :search/active not)))
+
+(deftype ^:private ClearSearchNavigation [term]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :search/result 0 :search/term term)))
+
+(deftype SetActiveSearchResult [index]
+  ptk/UpdateEvent
+  (update [_ {count :search/results-count :as state}]
+    (if (<= 0 index (dec count))
+      (assoc state :search/result index)
+      state)))
+
+(deftype ^:private NavigateNextSearchResult []
+  ptk/WatchEvent
+  (watch [_ {result :search/result} _]
+    (rxt/just (->SetActiveSearchResult (inc result)))))
+
+(deftype ^:private NavigatePreviousSearchResult []
+  ptk/WatchEvent
+  (watch [_ {result :search/result} _]
+    (rxt/just (->SetActiveSearchResult (dec result)))))
+
+(deftype ^:private ClearSearchTerm []
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :search/term "" :search/active false)))
+
+(deftype ActivateSearchResult [index]
+  ptk/WatchEvent
+  (watch [_ {results :search/results} stream]
+    (let [[deck _ slide _] (nth results index)]
+      (rxt/of
+       (->SetCurrentDeck deck)
+       (->SetCurrentSlide slide)
+       (->ClearSearchTerm)))))
+
+(deftype ^:private SetSearchResults [results]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :search/results (vec results))))
+
+(deftype ^:private SetSearchResultsCount [count]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :search/results-count count)))
+
+(deftype SetSearchTerm [term]
+  ptk/WatchEvent
+  (watch [_ {index :db/index} stream]
+    (let [tp (re-pattern (str "(?i).*\\b" term ".*"))
+          rs (filter #(or (re-matches tp (second %))
+                          (re-matches tp (last %))) index)]
+      (rxt/of
+       (->ClearSearchNavigation term)
+       (->SetSearchResultsCount (count rs))
+       (->SetSearchResults rs)))))
 
 (defn- in-presentation-map
-  [reconciler key]
-  (js/console.log reconciler key)
-  (get {37 #(scrum/dispatch! reconciler :current :prev-slide)
-        39 #(scrum/dispatch! reconciler :current :next-slide)
-        32 #(scrum/dispatch! reconciler :current :next-slide)
-        83 #(scrum/dispatch! reconciler :search :toggle-active)}
+  [key]
+  (get {37 (->NavigatePreviousSlide)
+        39 (->NavigateNextSlide)
+        32 (->NavigateNextSlide)
+        83 (->ToggleSearchPanel)}
        key))
 
 (defn- in-search-map
-  [reconciler key]
-  (get {40 #(scrum/dispatch! reconciler :search :next-result)
-        38 #(scrum/dispatch! reconciler :search :prev-result)
-        13 #(let [[deck-id _ slide _]
-                  (get @(scrum/subscription reconciler [:search :results])
-                       @(scrum/subscription reconciler [:search :result]))]
-              (scrum/dispatch! reconciler :current :deck-id deck-id)
-              (scrum/dispatch! reconciler :current :slide slide)
-              (scrum/dispatch! reconciler :search :toggle-active)
-              (scrum/dispatch! reconciler :search :term ""))
-        27 #(scrum/dispatch! reconciler :search :toggle-active)}
+  [key result]
+  (get {40 (->NavigateNextSearchResult)
+        38 (->NavigatePreviousSearchResult)
+        13 (->ActivateSearchResult result)
+        27 (->ToggleSearchPanel)}
        key))
 
-(defn start-keyboard-loop [reconciler]
-  (let [loop-running @(scrum/subscription reconciler [:initialized :keyboard-loop])]
-    (when-not loop-running
-      (scrum/dispatch! reconciler :initialized :keyboard-loop)
-      (go-loop []
-        (let [event (<! keydown-chan-events)
-              key (.-keyCode event)
-              loop-running @(scrum/subscription reconciler [:initialized :keyboard-loop])
-              active-search @(scrum/subscription reconciler [:search :active])]
-          (if active-search
-            (when-let [action (in-search-map reconciler key)] (action))
-            (when-let [action (in-presentation-map reconciler key)] (action)))
-          (when loop-running (recur)))))))
+(deftype KeyPressed [key]
+  ptk/WatchEvent
+  (watch [_ {:keys [:db/decks :search/active :search/result]} _]
+    (if decks
+      (if active
+        (if-let [event (in-search-map key result)]
+          (rxt/just event) (rxt/empty))
+        (if-let [event (in-presentation-map key)]
+          (rxt/just event) (rxt/empty)))
+      (rxt/empty))))

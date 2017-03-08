@@ -1,12 +1,17 @@
 (ns showrum.app
   (:require [rum.core :as rum]
-            [scrum.core :as scrum]
-            [showrum.dispatchers :as dispatchers]
-            [showrum.routes :as routes]
-            [showrum.views :as views]))
+            [potok.core :as ptk]
+            [goog.events :as events]
+            [showrum.store :as store]
+            [showrum.events :refer [->KeyPressed]]
+            [showrum.views :as views])
+  (:import goog.events.EventType))
 
 (defn init []
-  (let [reconciler (dispatchers/reconcile)
-        history (routes/load reconciler)]
-    (rum/mount (views/main reconciler history)
-               (. js/document (getElementById "container")))))
+  (let [store   store/main]
+    (events/removeAll js/document EventType.KEYDOWN)
+    (events/listen js/document
+                   EventType.KEYDOWN
+                   #(ptk/emit! store (->KeyPressed (.-keyCode %)))) 
+    (rum/mount (views/main store)
+               (js/document.getElementById "container"))))

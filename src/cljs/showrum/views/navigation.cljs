@@ -1,81 +1,71 @@
 (ns showrum.views.navigation
   (:require [rum.core :as rum]
             [rum.mdl :as mdl]
-            [scrum.core :as scrum]
-            [showrum.effects :refer [go-home]]))
+            [beicon.core :as rxt]
+            [potok.core :as ptk]
+            [showrum.events :refer [NavigateNextSlide NavigatePreviousSlide SetCurrentDeck]]))
 
-(rum/defc slides-counter < rum/reactive
-  [reconciler slides-count]
-  [:div.counter (str (rum/react (scrum/subscription reconciler [:current :slide])) " / " slides-count)])
+(defn- button
+  [active event icon]
+  (mdl/button
+   {:mdl      [:fab :mini-fab :ripple]
+    :on-click (when active event)
+    :disabled (not active)}
+   (mdl/icon icon)))
 
-(rum/defc slide-navigation < rum/reactive
-  [reconciler slide slides-count]
-  (let [current-slide (rum/react (scrum/subscription reconciler [:current :slide]))]
-    [:nav.slides
-     (let [active (and (> current-slide 1) :active)]
-       (mdl/button
-        {:mdl      [:fab :mini-fab :ripple]
-         :on-click (when active #(scrum/dispatch! reconciler :current :prev-slide))
-         :disabled (not active)}
-        (mdl/icon "navigate_before")))
-     (let [active (and (< current-slide slides-count) :active)]
-       (mdl/button
-        {:mdl      [:fab :mini-fab :ripple]
-         :on-click (when active #(scrum/dispatch! reconciler :current :next-slide))
-         :disabled (not active)}
-        (mdl/icon "navigate_next")))]))
+(rum/defc slides-counter
+  [current-slide slides-count]
+  [:div.counter (str current-slide " / " slides-count)])
 
-(rum/defc deck-chooser < rum/reactive
-  [reconciler decks]
+(rum/defc slide-navigation
+  [store slides-count current-slide]
+  [:nav.slides
+   (button (and (> current-slide 1) :active)
+           #(ptk/emit! store (NavigatePreviousSlide.))
+           "navigate_before")
+   (button (and (< current-slide slides-count) :active)
+           #(ptk/emit! store (NavigateNextSlide.))
+           "navigate_next")])
+
+(rum/defc deck-chooser
+  [store decks current-deck]
   [:nav.decks
    {:width (str (count decks) "2vw")}
-   (for [{:keys [:db/id :deck/title]} decks]
+   (for [{:keys [:deck/order :deck/title :deck/slides]} decks]
      [:div
-      {:key id}
+      {:key (str current-deck order)}
       (mdl/button
        {:mdl      [:ripple]
-        :disabled (= (rum/react (scrum/subscription reconciler [:current :deck-id])) id)
-        :on-click #(scrum/dispatch! reconciler :current :deck-id id)}
+        :disabled (= current-deck order)
+        :on-click #(ptk/emit! store (SetCurrentDeck. order))}
        title)])])
-
-(rum/defc reload-decks
-  [reconciler history]
-  [:nav.reload
-   (mdl/button
-    {:mdl      [:fab :mini-fab :ripple]
-     :on-click (fn [e]
-                 (go-home reconciler history)
-                 (scrum/dispatch! reconciler :initialized :init)
-                 (scrum/dispatch! reconciler :current :init))}
-    (mdl/icon "refresh"))])
 
 (rum/defcs main < rum/reactive
   (rum/local false ::hovered)
   (rum/local nil ::timer)
-  [state reconciler history slides decks search-button]
-  (let [hovered       (::hovered state)
-        timer         (::timer state)
-        slides-count  (rum/react (scrum/subscription reconciler [:current :slides-count]))
+  [local-state store slides decks search-button current-slide]
+  (let [state         (rxt/to-atom store)
+        hovered       (::hovered local-state)
+        timer         (::timer local-state)
+        slides-count  (rum/react (rum/cursor state :deck/slides-count))
+        current-deck  (rum/react (rum/cursor state :deck/current))
         timeout       2000
         clear-timer   #(when @timer (.clearTimeout js/window @timer))
         set-timer     (fn []
                         (reset! timer
-                                (.setTimeout js/window
-                                             #(reset! hovered false)
-                                             timeout)))
-        current-slide (rum/react (scrum/subscription reconciler [:current :slide]))
-        active (rum/react (scrum/subscription reconciler [:search :active]))
+                                (js/window.setTimeout #(reset! hovered false)
+                                                      timeout)))
+        search-active (rum/react (rum/cursor state :search/active))
         hover-class   (if (or @hovered
                               (= current-slide 1)
                               (= current-slide slides-count)
-                              active)
+                              search-active)
                         "hovered" "")]
     [:div.navigation
      {:class          hover-class
       :on-mouse-enter (fn [e] (clear-timer) (reset! hovered true))
       :on-mouse-leave (fn [e] (clear-timer) (set-timer))}
-     (reload-decks reconciler history)
      (search-button)
-     (deck-chooser reconciler decks)
-     (slides-counter reconciler slides-count)
-     (slide-navigation reconciler slides slides-count)]))
+     (deck-chooser store decks current-deck)
+     (slides-counter current-slide slides-count)
+     (slide-navigation store slides-count current-slide)]))
