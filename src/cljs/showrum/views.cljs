@@ -28,9 +28,10 @@
                [:div (mdl/button {:mdl [:raised :ripple]} "Parse")]])
     (mdl/cell {:mdl [:2]}))])
 
-(rum/defc footer [deck]
+(rum/defc footer [deck gist]
   (let [{:deck/keys [author date place]} deck]
     [:footer
+     [:div gist]
      [:div author]
      [:div date]
      (when [:div place])]))
@@ -40,13 +41,12 @@
    [:h2 "Initializing DB"]
    (mdl/spinner {:is-active true})])
 
-
 (rum/defc main < rum/reactive [store]
-  (let [state            (rxt/to-atom store)
-        db               (rum/react (rum/cursor state :db/decks))
-        gist-initialized (rum/react (rum/cursor state :db/gist))]
+  (let [state (rxt/to-atom store)
+        db    (rum/react (rum/cursor state :db/decks))
+        gist  (rum/react (rum/cursor state :db/gist))]
     [:div
-     (if gist-initialized
+     (if gist
        (if db
          (let [current-deck  (rum/react (rum/cursor state :deck/current))
                current-slide (rum/react (rum/cursor state :slide/current))
@@ -57,6 +57,6 @@
              (navigation/main store slides db #(search/button store) current-slide)
              (search/main store)
              (presentation/main slides current-slide)
-             (footer deck)]])
+             (footer deck gist)]])
          (loading))
        (gist-form store))]))
