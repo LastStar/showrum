@@ -3,7 +3,15 @@
             [rum.mdl :as mdl]
             [beicon.core :as rxt]
             [potok.core :as ptk]
-            [showrum.events :refer [NavigateNextSlide NavigatePreviousSlide SetCurrentDeck]]))
+            [showrum.events :refer [->NavigateNextSlide ->NavigatePreviousSlide
+                                    ->SetCurrentDeck ->ReloadPresentation]]))
+
+(rum/defc reload-button
+  [store]
+  (mdl/button
+   {:mdl [:fab :mini-fab :ripple]
+    :on-click #(ptk/emit! store (->ReloadPresentation))}
+   (mdl/icon "replay")))
 
 (defn- button
   [active event icon]
@@ -21,23 +29,23 @@
   [store slides-count current-slide]
   [:nav.slides
    (button (and (> current-slide 1) :active)
-           #(ptk/emit! store (NavigatePreviousSlide.))
+           #(ptk/emit! store (->NavigatePreviousSlide))
            "navigate_before")
    (button (and (< current-slide slides-count) :active)
-           #(ptk/emit! store (NavigateNextSlide.))
+           #(ptk/emit! store (->NavigateNextSlide))
            "navigate_next")])
 
 (rum/defc deck-chooser
   [store decks current-deck]
   [:nav.decks
    {:width (str (count decks) "2vw")}
-   (for [{:keys [:deck/order :deck/title :deck/slides]} decks]
+   (for [{:deck/keys [order title slides]} decks]
      [:div
       {:key (str current-deck order)}
       (mdl/button
        {:mdl      [:ripple]
         :disabled (= current-deck order)
-        :on-click #(ptk/emit! store (SetCurrentDeck. order))}
+        :on-click #(ptk/emit! store (->SetCurrentDeck order))}
        title)])])
 
 (rum/defcs main < rum/reactive
@@ -65,7 +73,10 @@
      {:class          hover-class
       :on-mouse-enter (fn [e] (clear-timer) (reset! hovered true))
       :on-mouse-leave (fn [e] (clear-timer) (set-timer))}
-     (search-button)
+     [:nav
+      (reload-button store)
+      [:span " "]
+      (search-button)]
      (deck-chooser store decks current-deck)
      (slides-counter current-slide slides-count)
      (slide-navigation store slides-count current-slide)]))

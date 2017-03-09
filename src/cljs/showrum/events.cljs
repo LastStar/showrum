@@ -36,6 +36,12 @@
         (p/map ->SetFromGistContent get-promise))
        (rxt/just (->SetGist gist))))))
 
+(deftype ReloadPresentation []
+  ptk/WatchEvent
+  (watch [_ {gist :db/gist} _]
+    (js/console.log gist)
+    (rxt/just (->InitializeGist gist))))
+
 (deftype SetCurrentDeck [deck]
   ptk/UpdateEvent
   (update [_ {decks :db/decks :as state}]
@@ -128,6 +134,7 @@
         39 (->NavigateNextSlide)
         32 (->NavigateNextSlide)
         13 (->NavigateNextSlide)
+        82 (->ReloadPresentation)
         83 (->ToggleSearchPanel)}
        key))
 

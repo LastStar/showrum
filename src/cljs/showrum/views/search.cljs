@@ -11,11 +11,10 @@
   (let [state (rxt/to-atom store)
         active (rum/react (rum/cursor state :search/active))
         mdl-v (remove nil? [:fab :mini-fab :ripple (when active :accent)])]
-    [:nav.search
-     (mdl/button
-      {:mdl mdl-v
-       :on-click #(ptk/emit! store (->ToggleSearchPanel))}
-      (mdl/icon "search"))]))
+    (mdl/button
+     {:mdl mdl-v
+      :on-click #(ptk/emit! store (->ToggleSearchPanel))}
+     (mdl/icon "search"))))
 
 (rum/defc input-field < rum/reactive
   [store]
