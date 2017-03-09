@@ -3,7 +3,7 @@
             [rum.mdl :as mdl]
             [beicon.core :as rxt]
             [potok.core :as ptk]
-            [showrum.events :refer [InitializeGist]]
+            [showrum.events :refer [->InitializeGist]]
             [showrum.views.navigation :as navigation]
             [showrum.views.search :as search]
             [showrum.views.presentation :as presentation]))
@@ -18,7 +18,7 @@
                {:on-submit (fn [e]
                              (.preventDefault e)
                              (ptk/emit! store
-                                        (InitializeGist.
+                                        (->InitializeGist
                                          (-> e .-target (aget "gist") .-value))))}
                [:div
                 (mdl/textfield
@@ -29,7 +29,7 @@
     (mdl/cell {:mdl [:2]}))])
 
 (rum/defc footer [deck]
-  (let [{:keys [:deck/author :deck/date :deck/place]} deck]
+  (let [{:deck/keys [author date place]} deck]
     [:footer
      [:div author]
      [:div date]
@@ -56,6 +56,7 @@
             [:div.page
              (navigation/main store slides db #(search/button store) current-slide)
              (search/main store)
-             (presentation/main slides current-slide)]])
+             (presentation/main slides current-slide)
+             (footer deck)]])
          (loading))
        (gist-form store))]))

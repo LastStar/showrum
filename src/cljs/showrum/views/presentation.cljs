@@ -8,8 +8,7 @@
    {:style {:width     (str (count slides) "00vw")
             :transform (str "translateX(-"
                             (dec current-slide) "00vw)")}}
-   (for [{:keys [:slide/order :slide/type :slide/bullets
-                 :slide/title :slide/text :slide/image]} (sort-by :slide/order slides)]
+   (for [{:slide/keys [order type bullets title text image]} slides]
      [:div.slide
       {:key order :class (name type)}
       [:h1.title title]

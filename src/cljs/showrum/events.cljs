@@ -21,17 +21,19 @@
                         (:deck/slides d)))
           rows   (apply concat
                         (map flatfn decks))]
-      (-> state
-          (assoc :db/decks decks)
-          (assoc :db/index rows)
-          (assoc :deck/slides-count (count (:deck/slides (first decks))))))))
+      (assoc state :db/decks decks
+             :db/index rows
+             :deck/current 1
+             :slide/current 1
+             :deck/slides-count (count (:deck/slides (first decks)))))))
 
 (deftype InitializeGist [gist]
   ptk/WatchEvent
-  (watch [_ state stream]
+  (watch [_ state _]
     (let [get-promise (http/get client gist)]
       (rxt/merge
-       (rxt/from-promise (p/map ->SetFromGistContent get-promise))
+       (rxt/from-promise
+        (p/map ->SetFromGistContent get-promise))
        (rxt/just (->SetGist gist))))))
 
 (deftype SetCurrentDeck [deck]
@@ -125,6 +127,7 @@
   (get {37 (->NavigatePreviousSlide)
         39 (->NavigateNextSlide)
         32 (->NavigateNextSlide)
+        13 (->NavigateNextSlide)
         83 (->ToggleSearchPanel)}
        key))
 
@@ -138,11 +141,8 @@
 
 (deftype KeyPressed [key]
   ptk/WatchEvent
-  (watch [_ {:keys [:db/decks :search/active :search/result]} _]
-    (if decks
-      (if active
-        (if-let [event (in-search-map key result)]
-          (rxt/just event) (rxt/empty))
-        (if-let [event (in-presentation-map key)]
-          (rxt/just event) (rxt/empty)))
-      (rxt/empty))))
+  (watch [_ {:keys [db/decks search/active search/result]} _]
+    (let [event (if active
+                  (in-search-map key result)
+                  (in-presentation-map key))]
+      (if event (rxt/just event) (rxt/empty)))))
