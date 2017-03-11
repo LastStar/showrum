@@ -63,7 +63,14 @@
       (is (s/valid? :showrum.spec/slide parsed))
       (is (= (:slide/type parsed) :type/image))
       (is (= (:slide/title parsed) "Image slide"))
-      (is (= (:slide/image parsed) "![Image of you](http://you.me/image.png)")))))
+      (is (= (:slide/image parsed) "![Image of you](http://you.me/image.png)"))))
+  (testing "Code slide"
+    (let [slide "## Code slide\n\n```let a = \"World\";\nputs(\"Hello \" + a);```"
+          parsed (parser/parse-slide slide 1)]
+      (is (s/valid? :showrum.spec/slide parsed))
+      (is (= (:slide/type parsed) :type/code))
+      (is (= (:slide/title parsed) "Code slide"))
+      (is (= (:slide/code parsed) "let a = \"World\";\nputs(\"Hello \" + a);")))))
 
 (deftest test-deck-parsing
   (testing "One Deck"
@@ -107,7 +114,7 @@
                       "## Image slide\n\n![Image of you](http://you.me/image.png)")
           parsed (parser/parse-decks docs)
           decks  (filter :deck/title parsed)
-          slides (filter :slide/title parsed)]
+          slides (:deck/slides (first decks))]
       (is (s/valid? :showrum.spec/decks parsed))
       (is (= (count decks) 2))
       (is (= (map #(:deck/order %) decks) '(1 2)))

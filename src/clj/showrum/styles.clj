@@ -116,11 +116,13 @@
             :line-height "4.29981696rem"}]]
          [:&.image
           [:h1.title
-           {:font-size "2.985984rem"}]]]
+           {:font-size "2.985984rem"}]]
+         [:pre
+          {:font-size "2.985984rem"
+           :line-height "4rem"}]]
         [:.note
          {:font-size "3rem"
-          :line-height "4.5rem"}]]
-       ]
+          :line-height "4.5rem"}]]]
       [:footer
        {:display :flex
         :justify-content :space-between
