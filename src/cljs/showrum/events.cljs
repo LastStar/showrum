@@ -4,6 +4,7 @@
             [promesa.core :as p]
             [httpurr.client :as http]
             [httpurr.client.xhr :refer [client]]
+            [httpurr.status :as status]
             [showrum.parser :as parser]))
 
 (deftype ^:private SetGist [gist]
@@ -11,30 +12,31 @@
   (update [_ state]
     (assoc state :db/gist gist)))
 
-(deftype ^:private SetFromGistContent [gist-content]
+(deftype ^:private SetFromGistContent [gist-response]
   ptk/UpdateEvent
   (update [_ state]
-    (let [decks  (parser/parse-decks (:body gist-content))
-          flatfn (fn [d]
-                   (map #(vector (:deck/order d) (:deck/title d)
-                                 (:slide/order %) (:slide/title %))
-                        (:deck/slides d)))
-          rows   (apply concat
-                        (map flatfn decks))]
-      (assoc state :db/decks decks
-             :db/index rows
-             :deck/current 1
-             :slide/current 1
-             :deck/slides-count (count (:deck/slides (first decks)))))))
+    (if (status/success? gist-response)
+      (let [decks  (parser/parse-decks (:body gist-response))
+            flatfn (fn [d]
+                     (map #(vector (:deck/order d) (:deck/title d)
+                                   (:slide/order %) (:slide/title %))
+                          (:deck/slides d)))
+            rows   (apply concat
+                          (map flatfn decks))]
+        (assoc state :db/decks decks
+               :db/index rows
+               :deck/current 1
+               :slide/current 1
+               :deck/slides-count (count (:deck/slides (first decks)))))
+      (assoc state :db/error "XHR error" :db/gist nil))))
 
 (deftype InitializeGist [gist]
   ptk/WatchEvent
   (watch [_ state _]
-    (let [get-promise (http/get client gist)]
-      (rxt/merge
-       (rxt/from-promise
-        (p/map ->SetFromGistContent get-promise))
-       (rxt/just (->SetGist gist))))))
+    (rxt/merge
+     (rxt/from-promise
+      (p/then (http/get client gist) ->SetFromGistContent))
+     (rxt/just (->SetGist gist)))))
 
 (deftype ReloadPresentation []
   ptk/WatchEvent

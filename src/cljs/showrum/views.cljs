@@ -8,12 +8,13 @@
             [showrum.views.search :as search]
             [showrum.views.presentation :as presentation]))
 
-(rum/defc gist-form [store]
+(rum/defc gist-form [store err]
   [:div.gist
    (mdl/grid
     (mdl/cell {:mdl [:2]})
     (mdl/cell {:mdl [:8]}
               [:h4 "No decks loaded. Please add uri for the gist."]
+              (when err [:h5 "There was a " err])
               [:form
                {:on-submit (fn [e]
                              (.preventDefault e)
@@ -44,7 +45,8 @@
 (rum/defc main < rum/reactive [store]
   (let [state (rxt/to-atom store)
         db    (rum/react (rum/cursor state :db/decks))
-        gist  (rum/react (rum/cursor state :db/gist))]
+        gist  (rum/react (rum/cursor state :db/gist))
+        err   (rum/react (rum/cursor state :db/error))]
     [:div
      (if gist
        (if db
@@ -59,4 +61,4 @@
              (presentation/main slides current-slide)
              (footer deck gist)]])
          (loading))
-       (gist-form store))]))
+       (gist-form store err))]))
