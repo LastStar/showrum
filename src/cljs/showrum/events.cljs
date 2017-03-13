@@ -41,15 +41,25 @@
 (deftype ReloadPresentation []
   ptk/WatchEvent
   (watch [_ {gist :db/gist} _]
-    (js/console.log gist)
     (rxt/just (->InitializeGist gist))))
 
 (deftype SetCurrentDeck [deck]
   ptk/UpdateEvent
   (update [_ {decks :db/decks :as state}]
-    (let [sc (count (:deck/slides
-                     (some #(and (= deck (:deck/order %)) %) decks)))]
-      (assoc state :slide/current 1 :deck/current deck :deck/slides-count sc))))
+    (if (<= 1 deck (count decks))
+      (let [sc (count (:deck/slides (some #(and (= deck (:deck/order %)) %) decks)))]
+        (assoc state :slide/current 1 :deck/current deck :deck/slides-count sc))
+      state)))
+
+(deftype ^:private NavigateNextDeck []
+  ptk/WatchEvent
+  (watch [_ {deck :deck/current} _]
+    (rxt/just (->SetCurrentDeck (inc deck)))))
+
+(deftype ^:private NavigatePreviousDeck []
+  ptk/WatchEvent
+  (watch [_ {deck :deck/current} _]
+    (rxt/just (->SetCurrentDeck (dec deck)))))
 
 (deftype ^:private SetCurrentSlide [slide]
   ptk/UpdateEvent
@@ -134,6 +144,8 @@
   [key]
   (get {37 (->NavigatePreviousSlide)
         39 (->NavigateNextSlide)
+        38 (->NavigatePreviousDeck)
+        40 (->NavigateNextDeck)
         32 (->NavigateNextSlide)
         13 (->NavigateNextSlide)
         82 (->ReloadPresentation)
