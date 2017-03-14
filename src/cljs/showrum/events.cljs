@@ -5,7 +5,17 @@
             [httpurr.client :as http]
             [httpurr.client.xhr :refer [client]]
             [httpurr.status :as status]
+            [bide.core :as router]
+            [showrum.app :as app]
             [showrum.parser :as parser]))
+
+(deftype ^:private NavigateUrl []
+  ptk/EffectEvent
+  (effect [_ {deck :deck/current slide :slide/current gist :db/gist} _]
+    (router/navigate! app/routes
+                     :showrum/presentation
+                     {:deck deck :slide slide}
+                     {:gist gist})))
 
 (deftype ^:private SetGist [gist]
   ptk/UpdateEvent
@@ -32,7 +42,10 @@
                :db/decks decks
                :db/index rows
                :deck/slides-count slides-count))
-      (assoc state :db/error "XHR error" :db/gist nil))))
+      (assoc state :db/error "XHR error" :db/gist nil)))
+  ptk/WatchEvent
+  (watch [_ _ _]
+    (rxt/just (->NavigateUrl))))
 
 (deftype InitializeGist [gist]
   ptk/WatchEvent
@@ -50,7 +63,10 @@
 (deftype ^:private SetCurrentDeck [deck]
   ptk/UpdateEvent
   (update [_ state]
-    (assoc state :deck/current deck)))
+    (assoc state :deck/current deck))
+  ptk/WatchEvent
+  (watch [_ _ _]
+    (rxt/just (->NavigateUrl))))
 
 (deftype InitDeck [deck]
   ptk/UpdateEvent
@@ -78,7 +94,10 @@
   (update [_ state]
     (if (<= 1 slide (:deck/slides-count state))
       (assoc state :slide/current slide)
-      state)))
+      state))
+  ptk/WatchEvent
+  (watch [_ _ _]
+    (rxt/just (->NavigateUrl))))
 
 (deftype NavigateNextSlide []
   ptk/WatchEvent
