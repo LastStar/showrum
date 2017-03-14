@@ -4,7 +4,7 @@
             [beicon.core :as rxt]
             [potok.core :as ptk]
             [showrum.events :refer [->NavigateNextSlide ->NavigatePreviousSlide
-                                    ->SetCurrentDeck ->ReloadPresentation]]))
+                                    ->InitDeck ->ReloadPresentation]]))
 
 (rum/defc reload-button
   [store]
@@ -45,7 +45,7 @@
       (mdl/button
        {:mdl      [:ripple]
         :disabled (= current-deck order)
-        :on-click #(ptk/emit! store (->SetCurrentDeck order))}
+        :on-click #(ptk/emit! store (->InitDeck order))}
        title)])])
 
 (rum/defcs main < rum/reactive

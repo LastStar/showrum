@@ -22,12 +22,16 @@
                                    (:slide/order %) (:slide/title %))
                           (:deck/slides d)))
             rows   (apply concat
-                          (map flatfn decks))]
-        (assoc state :db/decks decks
+                          (map flatfn decks))
+            slides-count (count
+                          (:deck/slides
+                           (some #(and
+                                   (= (:deck/order %) (:deck/current state)) %)
+                                 decks)))]
+        (assoc state
+               :db/decks decks
                :db/index rows
-               :deck/current 1
-               :slide/current 1
-               :deck/slides-count (count (:deck/slides (first decks)))))
+               :deck/slides-count slides-count))
       (assoc state :db/error "XHR error" :db/gist nil))))
 
 (deftype InitializeGist [gist]
@@ -43,23 +47,31 @@
   (watch [_ {gist :db/gist} _]
     (rxt/just (->InitializeGist gist))))
 
-(deftype SetCurrentDeck [deck]
+(deftype ^:private SetCurrentDeck [deck]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :deck/current deck)))
+
+(deftype InitDeck [deck]
   ptk/UpdateEvent
   (update [_ {decks :db/decks :as state}]
     (if (<= 1 deck (count decks))
       (let [sc (count (:deck/slides (some #(and (= deck (:deck/order %)) %) decks)))]
-        (assoc state :slide/current 1 :deck/current deck :deck/slides-count sc))
-      state)))
+        (assoc state :slide/current 1 :deck/slides-count sc))
+      state))
+  ptk/WatchEvent
+  (watch [_ _ _]
+    (rxt/just (->SetCurrentDeck deck))))
 
 (deftype ^:private NavigateNextDeck []
   ptk/WatchEvent
   (watch [_ {deck :deck/current} _]
-    (rxt/just (->SetCurrentDeck (inc deck)))))
+    (rxt/just (->InitDeck (inc deck)))))
 
 (deftype ^:private NavigatePreviousDeck []
   ptk/WatchEvent
   (watch [_ {deck :deck/current} _]
-    (rxt/just (->SetCurrentDeck (dec deck)))))
+    (rxt/just (->InitDeck (dec deck)))))
 
 (deftype ^:private SetCurrentSlide [slide]
   ptk/UpdateEvent
@@ -115,7 +127,7 @@
   (watch [_ {results :search/results} stream]
     (let [[deck _ slide _] (nth results index)]
       (rxt/of
-       (->SetCurrentDeck deck)
+       (->InitDeck deck)
        (->SetCurrentSlide slide)
        (->ClearSearchTerm)))))
 
@@ -167,3 +179,14 @@
                   (in-search-map key result)
                   (in-presentation-map key))]
       (if event (rxt/just event) (rxt/empty)))))
+
+(deftype RouteMatched [name params query]
+  ptk/WatchEvent
+  (watch [_ {decks :db/decks} _]
+    (case name
+      :showrum/presentation
+      (rxt/of
+       (->InitializeGist (:gist query))
+       (->SetCurrentDeck (js/parseInt (:deck params)))
+       (->SetCurrentSlide (js/parseInt (:slide params))))
+      (rxt/just (rxt/empty)))))

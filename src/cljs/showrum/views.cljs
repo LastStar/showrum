@@ -14,7 +14,9 @@
     (mdl/cell {:mdl [:2]})
     (mdl/cell {:mdl [:8]}
               [:h4 "No decks loaded. Please add uri for the gist."]
-              [:h5 (when err (str "There was a " err))]
+              [:h5
+               {:style {:color :red}}
+               (when err (str "There was a " err))]
               [:form
                {:on-submit (fn [e]
                              (.preventDefault e)
