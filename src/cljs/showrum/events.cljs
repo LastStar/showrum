@@ -9,22 +9,20 @@
             [showrum.app :as app]
             [showrum.parser :as parser]))
 
+(defn- look-up [deck decks]
+  (some #(and (= deck (:deck/order %)) %) decks))
+
 (deftype ^:private NavigateUrl []
   ptk/EffectEvent
   (effect [_ {deck :deck/current slide :slide/current gist :db/gist} _]
     (router/navigate! app/routes
-                     :showrum/presentation
-                     {:deck deck :slide slide}
-                     {:gist gist})))
-
-(deftype ^:private SetGist [gist]
-  ptk/UpdateEvent
-  (update [_ state]
-    (assoc state :db/gist gist)))
+                      :showrum/presentation
+                      {:deck deck :slide slide}
+                      {:gist gist})))
 
 (deftype ^:private SetFromGistContent [gist-response]
   ptk/UpdateEvent
-  (update [_ state]
+  (update [_ {deck :deck/current :as state}]
     (if (status/success? gist-response)
       (let [decks  (parser/parse-decks (:body gist-response))
             flatfn (fn [d]
@@ -34,26 +32,22 @@
             rows   (apply concat
                           (map flatfn decks))
             slides-count (count
-                          (:deck/slides
-                           (some #(and
-                                   (= (:deck/order %) (:deck/current state)) %)
-                                 decks)))]
-        (assoc state
-               :db/decks decks
-               :db/index rows
-               :deck/slides-count slides-count))
+                          (:deck/slides (look-up deck decks)))]
+        (assoc state :db/decks decks :db/index rows :deck/slides-count slides-count))
       (assoc state :db/error "XHR error" :db/gist nil)))
   ptk/WatchEvent
   (watch [_ _ _]
-    (rxt/just (->NavigateUrl))))
+    (if gist-response
+      (rxt/just (->NavigateUrl))
+      (rxt/empty))))
 
 (deftype InitializeGist [gist]
   ptk/WatchEvent
   (watch [_ state _]
-    (rxt/merge
-     (rxt/from-promise
-      (p/then (http/get client gist) ->SetFromGistContent))
-     (rxt/just (->SetGist gist)))))
+    (rxt/from-promise (p/then (http/get client gist) ->SetFromGistContent)))
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :db/gist gist)))
 
 (deftype ReloadPresentation []
   ptk/WatchEvent
@@ -72,7 +66,7 @@
   ptk/UpdateEvent
   (update [_ {decks :db/decks :as state}]
     (if (<= 1 deck (count decks))
-      (let [sc (count (:deck/slides (some #(and (= deck (:deck/order %)) %) decks)))]
+      (let [sc (count (:deck/slides (look-up deck decks)))]
         (assoc state :slide/current 1 :deck/slides-count sc))
       state))
   ptk/WatchEvent
@@ -146,19 +140,15 @@
   (watch [_ {results :search/results} stream]
     (let [[deck _ slide _] (nth results index)]
       (rxt/of
-       (->InitDeck deck)
+       (->SetCurrentDeck deck)
        (->SetCurrentSlide slide)
        (->ClearSearchTerm)))))
 
 (deftype ^:private SetSearchResults [results]
   ptk/UpdateEvent
   (update [_ state]
-    (assoc state :search/results (vec results))))
-
-(deftype ^:private SetSearchResultsCount [count]
-  ptk/UpdateEvent
-  (update [_ state]
-    (assoc state :search/results-count count)))
+    (assoc state :search/results (vec results)
+           :search/results-count (count results))))
 
 (deftype SetSearchTerm [term]
   ptk/WatchEvent
@@ -168,7 +158,6 @@
                           (re-matches tp (last %))) index)]
       (rxt/of
        (->ClearSearchNavigation term)
-       (->SetSearchResultsCount (count rs))
        (->SetSearchResults rs)))))
 
 (defn- in-presentation-map
