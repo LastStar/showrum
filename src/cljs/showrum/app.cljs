@@ -9,7 +9,7 @@
   (:import goog.events.EventType))
 
 (def routes
-  (router/router [["/presentation/:deck/:slide" :showrum/presentation]]))
+  (router/router [["/presentation/:gist/:deck/:slide" :showrum/presentation]]))
 
 (defn init []
   (let [store store/main]

@@ -1,5 +1,6 @@
 (ns showrum.events
   (:require [potok.core :as ptk]
+            [goog.crypt.base64 :as base64]
             [beicon.core :as rxt]
             [promesa.core :as p]
             [httpurr.client :as http]
@@ -17,8 +18,7 @@
   (effect [_ {deck :deck/current slide :slide/current gist :db/gist} _]
     (router/navigate! app/routes
                       :showrum/presentation
-                      {:deck deck :slide slide}
-                      {:gist gist})))
+                      {:deck deck :slide slide :gist (base64/encodeString gist)})))
 
 (deftype ^:private SetFromGistContent [gist-response]
   ptk/UpdateEvent
@@ -29,17 +29,14 @@
                      (map #(vector (:deck/order d) (:deck/title d)
                                    (:slide/order %) (:slide/title %))
                           (:deck/slides d)))
-            rows   (apply concat
-                          (map flatfn decks))
-            slides-count (count
-                          (:deck/slides (look-up deck decks)))]
+            rows   (apply concat (map flatfn decks))
+            slides-count (count (:deck/slides (look-up deck decks)))]
         (assoc state :db/decks decks :db/index rows :deck/slides-count slides-count))
       (assoc state :db/error "XHR error" :db/gist nil)))
   ptk/WatchEvent
   (watch [_ _ _]
     (if gist-response
-      (rxt/just (->NavigateUrl))
-      (rxt/empty))))
+      (rxt/just (->NavigateUrl)) (rxt/empty))))
 
 (deftype InitializeGist [gist]
   ptk/WatchEvent
@@ -190,11 +187,15 @@
 
 (deftype RouteMatched [name params query]
   ptk/WatchEvent
-  (watch [_ {decks :db/decks} _]
+  (watch [_ {:db/keys [gist decks]} _]
     (case name
       :showrum/presentation
-      (rxt/of
-       (->InitializeGist (:gist query))
-       (->SetCurrentDeck (js/parseInt (:deck params)))
-       (->SetCurrentSlide (js/parseInt (:slide params))))
+      (let [gist-from-url  (base64/decodeString
+                            (js/decodeURIComponent (:gist params)))]
+        (rxt/of
+         (if-not (= gist-from-url gist)
+           (->InitializeGist gist-from-url)
+           (rxt/just (rxt/empty)))
+         (->SetCurrentDeck (js/parseInt (:deck params)))
+         (->SetCurrentSlide (js/parseInt (:slide params)))))
       (rxt/just (rxt/empty)))))
