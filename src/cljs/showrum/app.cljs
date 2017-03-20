@@ -1,22 +1,21 @@
 (ns showrum.app
   (:require [rum.core :as rum]
+            [bide.core :as router]
             [potok.core :as ptk]
             [goog.events :as events]
-            [bide.core :as router]
+            [showrum.routes :as routes]
             [showrum.store :as store]
             [showrum.events :refer [->KeyPressed ->RouteMatched]]
             [showrum.views :as views])
   (:import goog.events.EventType))
 
-(def routes
-  (router/router [["/presentation/:gist/:deck/:slide" :showrum/presentation]]))
-
 (defn init []
   (let [store store/main]
-    (router/start! routes
-                   {:default     :showrum/index
-                    :on-navigate (fn [name params query]
-                                   (ptk/emit! store (->RouteMatched name params query)))})
+    (router/start!
+     routes/config
+     {:default     :showrum/index
+      :on-navigate (fn [name params query]
+                     (ptk/emit! store (->RouteMatched name params query)))})
     (events/removeAll js/document EventType.KEYDOWN)
     (events/listen js/document
                    EventType.KEYDOWN

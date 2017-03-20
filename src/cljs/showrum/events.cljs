@@ -7,7 +7,7 @@
             [httpurr.client.xhr :refer [client]]
             [httpurr.status :as status]
             [bide.core :as router]
-            [showrum.app :as app]
+            [showrum.routes :as routes]
             [showrum.parser :as parser]))
 
 (defn- look-up [deck decks]
@@ -16,19 +16,20 @@
 (deftype ^:private NavigateUrl []
   ptk/EffectEvent
   (effect [_ {deck :deck/current slide :slide/current gist :db/gist} _]
-    (router/navigate! app/routes
-                      :showrum/presentation
-                      {:deck deck :slide slide :gist (base64/encodeString gist)})))
+    (when (and deck slide gist)
+      (router/navigate! routes/config
+                        :showrum/presentation
+                        {:deck deck :slide slide
+                         :gist (base64/encodeString gist)}))))
 
 (deftype ^:private SetFromGistContent [gist-response]
   ptk/UpdateEvent
   (update [_ {deck :deck/current :as state}]
     (if (status/success? gist-response)
       (let [decks  (parser/parse-decks (:body gist-response))
-            flatfn (fn [d]
-                     (map #(vector (:deck/order d) (:deck/title d)
-                                   (:slide/order %) (:slide/title %))
-                          (:deck/slides d)))
+            flatfn (fn [{:deck/keys [order title slides]}]
+                     (map (fn [{so :slide/order st :slide/title}] [order title so st (count slides)])
+                          slides))
             rows   (apply concat (map flatfn decks))
             slides-count (count (:deck/slides (look-up deck decks)))]
         (assoc state :db/decks decks :db/index rows :deck/slides-count slides-count))
@@ -51,35 +52,6 @@
   (watch [_ {gist :db/gist} _]
     (rxt/just (->InitializeGist gist))))
 
-(deftype ^:private SetCurrentDeck [deck]
-  ptk/UpdateEvent
-  (update [_ state]
-    (assoc state :deck/current deck))
-  ptk/WatchEvent
-  (watch [_ _ _]
-    (rxt/just (->NavigateUrl))))
-
-(deftype InitDeck [deck]
-  ptk/UpdateEvent
-  (update [_ {decks :db/decks :as state}]
-    (if (<= 1 deck (count decks))
-      (let [sc (count (:deck/slides (look-up deck decks)))]
-        (assoc state :slide/current 1 :deck/slides-count sc))
-      state))
-  ptk/WatchEvent
-  (watch [_ _ _]
-    (rxt/just (->SetCurrentDeck deck))))
-
-(deftype ^:private NavigateNextDeck []
-  ptk/WatchEvent
-  (watch [_ {deck :deck/current} _]
-    (rxt/just (->InitDeck (inc deck)))))
-
-(deftype ^:private NavigatePreviousDeck []
-  ptk/WatchEvent
-  (watch [_ {deck :deck/current} _]
-    (rxt/just (->InitDeck (dec deck)))))
-
 (deftype ^:private SetCurrentSlide [slide]
   ptk/UpdateEvent
   (update [_ state]
@@ -99,6 +71,39 @@
   ptk/WatchEvent
   (watch [_ {slide :slide/current} _]
     (rxt/just (->SetCurrentSlide (dec slide)))))
+
+(deftype ^:private SetCurrentDeck [deck]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :deck/current deck))
+  ptk/WatchEvent
+  (watch [_ _ _]
+    (rxt/just (->NavigateUrl))))
+
+(deftype ^:private SetSlidesCount [count]
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :deck/slides-count count)))
+
+(deftype InitDeck [deck]
+  ptk/WatchEvent
+  (watch [_ {decks :db/decks} _]
+    (if (<= 1 deck (count decks))
+      (let [sc (count (:deck/slides (look-up deck decks)))]
+        (rxt/of (->SetCurrentDeck deck)
+                (->SetCurrentSlide 1)
+                (->SetSlidesCount sc)))
+      (rxt/empty))))
+
+(deftype ^:private NavigateNextDeck []
+  ptk/WatchEvent
+  (watch [_ {deck :deck/current} _]
+    (rxt/just (->InitDeck (inc deck)))))
+
+(deftype ^:private NavigatePreviousDeck []
+  ptk/WatchEvent
+  (watch [_ {deck :deck/current} _]
+    (rxt/just (->InitDeck (dec deck)))))
 
 (deftype ToggleSearchPanel []
   ptk/UpdateEvent
@@ -135,10 +140,11 @@
 (deftype ActivateSearchResult [index]
   ptk/WatchEvent
   (watch [_ {results :search/results} stream]
-    (let [[deck _ slide _] (nth results index)]
+    (let [[deck _ slide _ slides-count] (nth results index)]
       (rxt/of
        (->SetCurrentDeck deck)
        (->SetCurrentSlide slide)
+       (->SetSlidesCount slides-count)
        (->ClearSearchTerm)))))
 
 (deftype ^:private SetSearchResults [results]
@@ -151,8 +157,9 @@
   ptk/WatchEvent
   (watch [_ {index :db/index} stream]
     (let [tp (re-pattern (str "(?i).*\\b" term ".*"))
-          rs (filter #(or (re-matches tp (second %))
-                          (re-matches tp (last %))) index)]
+          rs (filter (fn [[_ dt _ st _]]
+                       (or (re-matches tp dt)
+                           (re-matches tp st))) index)]
       (rxt/of
        (->ClearSearchNavigation term)
        (->SetSearchResults rs)))))
@@ -196,6 +203,6 @@
          (if-not (= gist-from-url gist)
            (->InitializeGist gist-from-url)
            (rxt/just (rxt/empty)))
-         (->SetCurrentDeck (js/parseInt (:deck params)))
+         [->SetCurrentDeck (js/parseInt (:deck params))]
          (->SetCurrentSlide (js/parseInt (:slide params)))))
       (rxt/just (rxt/empty)))))
