@@ -27,10 +27,10 @@
   (update [_ {deck :deck/current :as state}]
     (if (status/success? gist-response)
       (let [decks  (parser/parse-decks (:body gist-response))
-            flatfn (fn [{:deck/keys [order title slides]}]
+            row-fn (fn [{:deck/keys [order title slides]}]
                      (map (fn [{so :slide/order st :slide/title}] [order title so st (count slides)])
                           slides))
-            rows   (apply concat (map flatfn decks))
+            rows   (apply concat (map row-fn decks))
             slides-count (count (:deck/slides (look-up deck decks)))]
         (assoc state :db/decks decks :db/index rows :deck/slides-count slides-count))
       (assoc state :db/error "XHR error" :db/gist nil)))
