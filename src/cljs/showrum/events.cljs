@@ -52,7 +52,7 @@
   (watch [_ {gist :db/gist} _]
     (rxt/just (->InitializeGist gist))))
 
-(deftype ^:private SetCurrentSlide [slide]
+(defrecord ^:private SetCurrentSlide [slide]
   ptk/UpdateEvent
   (update [_ state]
     (if (<= 1 slide (:deck/slides-count state))
