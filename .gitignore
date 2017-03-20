@@ -4,4 +4,5 @@
 .DS_Store
 /docs/js/app.cljs.edn
 /docs/js/app.out/
+/*.html
 
