@@ -72,7 +72,7 @@
   (watch [_ {slide :slide/current} _]
     (rxt/just (->SetCurrentSlide (dec slide)))))
 
-(deftype ^:private SetCurrentDeck [deck]
+(defrecord ^:private SetCurrentDeck [deck]
   ptk/UpdateEvent
   (update [_ state]
     (assoc state :deck/current deck))
@@ -80,7 +80,7 @@
   (watch [_ _ _]
     (rxt/just (->NavigateUrl))))
 
-(deftype ^:private SetSlidesCount [count]
+(defrecord ^:private SetSlidesCount [count]
   ptk/UpdateEvent
   (update [_ state]
     (assoc state :deck/slides-count count)))
@@ -132,7 +132,7 @@
   (watch [_ {result :search/result} _]
     (rxt/just (->SetActiveSearchResult (dec result)))))
 
-(deftype ^:private ClearSearchTerm []
+(defrecord ^:private ClearSearchTerm []
   ptk/UpdateEvent
   (update [_ state]
     (assoc state :search/term "" :search/active false)))
@@ -142,8 +142,8 @@
   (watch [_ {results :search/results} stream]
     (let [[deck _ slide _ slides-count] (nth results index)]
       (rxt/of
-       (->SetCurrentDeck deck)
        (->SetCurrentSlide slide)
+       (->SetCurrentDeck deck)
        (->SetSlidesCount slides-count)
        (->ClearSearchTerm)))))
 

@@ -7,6 +7,12 @@
             [showrum.spec]
             [cljs.test :as t :include-macros true]))
 
+(deftest test-deck-navigation []
+  (testing "Set Slides Count"
+    (let [ev (sut/->SetSlidesCount 1)]
+      (is (= (ptk/update ev {})
+             {:deck/slides-count 1})))))
+
 (deftest test-slide-navigation []
   (let [init-state {:slide/current 2 :deck/slides-count 3}]
     (testing "Set Current Slide"
@@ -30,4 +36,19 @@
   (testing "Set Active Search Result"
     (let [ev (sut/->SetActiveSearchResult 1)]
       (is (= (ptk/update ev {:search/results-count 2})
-             {:search/results-count 2 :search/result 1})))))
+             {:search/results-count 2 :search/result 1}))))
+  (testing "Clear Search Term"
+    (let [ev (sut/->ClearSearchTerm)]
+      (is (= (ptk/update ev {})
+             {:search/term "" :search/active false}))))
+  (testing "Activate Search Result"
+    (let [ev (sut/->ActivateSearchResult 0)
+          init-state {:search/results [[1 nil 1 nil 1]]}
+          evs (atom [])
+          stream (ptk/watch ev init-state (rxt/empty))]
+      (rxt/on-value stream (fn [event] (swap! evs conj event)))
+      (is (= (count @evs) 4))
+      (is (some #(= (sut/->SetCurrentDeck 1) %) @evs))
+      (is (some #(= (sut/->SetCurrentSlide 1) %) @evs))
+      (is (some #(= (sut/->SetSlidesCount 1) %) @evs))
+      (is (some #(= (sut/->ClearSearchTerm) %) @evs)))))
