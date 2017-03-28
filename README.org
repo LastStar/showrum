@@ -27,7 +27,7 @@ Visual language that synthesizes classic principles of good design with the
 innovation and possibility of technology and science.
 ** Format
 *** Markdown based
-Small subset of [Markdown](https://daringfireball.net/projects/markdown/syntax)
+Small subset of [[https://daringfireball.net/projects/markdown/syntax][Markdown]]
 with some additions for deck and slide definitions.
 *** Decks
 Decks have preamble in which you specify basic information 
@@ -83,24 +83,26 @@ Lorem ipsum blabla gipsum.
 
 #+END_SRC
 ** Production build
-The production build can be found on [GitHub
-Page](https://pepe.github.io/showrum/) and you can try sample presentation from
-[Gist](https://gist.githubusercontent.com/pepe/6e7bccf290551c6f540c0eae6d2ca3ab/raw/3d16c5e19834a3e19fc0439f1eeb3739cda55677/decks.md).
+The production build can be found on [[https://pepe.github.io/showrum/][GitHub
+Page]] and you can try sample presentation from
+[[https://rawgit.com/pepe/po-potoce/master/presentation.md][Sample]].
 
 Hope it works, if not create an issue.
 ** Development
 *** Dependencies
-You need [Clojure](http://clojure.org) and [Boot](http://boot-clj.com).
+You need [[http://clojure.org][Clojure]] and [[http://boot-clj.com][Boot]].
 *** Run
 When setup, just run `boot dev` to run development server. 
 
-Then head to [http://localhost:3000/](http://localhost:3000/), supply the link
-to your gist with Markdown (or use [a sample](https://gist.githubusercontent.com/pepe/6e7bccf290551c6f540c0eae6d2ca3ab/raw/e72c2ebcc78c4b8caa8dab98fc3e5025d526cdd7/decks.md))
+Then head to [[http://localhost:3000/]], supply the link
+to your gist with Markdown (or use [[https://rawgit.com/pepe/po-potoce/master/presentation.md][a sample]])
 and you should be set.
 * Tasks
 ** TODO Add material design
-** TODO Add slides' examples
-** TODO Add better sample presentation
+** DONE Add slides' examples
+   CLOSED: [2017-03-28 út 22:56]
+** DONE Add better sample presentation
+   CLOSED: [2017-03-28 út 22:56]
 * Notes
 
 ## Development and whatever
