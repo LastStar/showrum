@@ -97,6 +97,8 @@ When setup, just run `boot dev` to run development server.
 Then head to [[http://localhost:3000/]], supply the link
 to your gist with Markdown (or use [[https://rawgit.com/pepe/po-potoce/master/presentation.md][a sample]])
 and you should be set.
+
+Have fun!
 * Tasks
 ** TODO Add material design
 ** DONE Add slides' examples
@@ -105,7 +107,3 @@ and you should be set.
    CLOSED: [2017-03-28 út 22:56]
 * Notes
 
-## Development and whatever
-
-
-Have fun!
