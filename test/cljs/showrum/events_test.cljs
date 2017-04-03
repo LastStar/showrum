@@ -3,8 +3,6 @@
   (:require [showrum.events :as sut]
             [potok.core :as ptk]
             [beicon.core :as rxt]
-            [cljs.spec :as s]
-            [showrum.spec]
             [cljs.test :as t :include-macros true]))
 
 (defonce fixture

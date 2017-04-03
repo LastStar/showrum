@@ -2,13 +2,13 @@
   (:require-macros [cljs.test :refer [deftest testing is are]])
   (:require [cljs.test :as t]
             [cljs.spec :as s]
-            [showrum.spec]
+            [showrum.spec.decks]
             [showrum.parser :as parser]))
 
 (deftest test-preamble-parsing []
   (let [preamble "---\nauthor: Pepe\ndate: 2016-12-12\ntitle: The Best\n---\n"
         parsed   (parser/parse-preamble preamble)]
-    (is (s/valid? :showrum.spec/deck parsed))
+    (is (s/valid? :showrum.spec.decks/deck parsed))
     (are [x y] (= x y)
       "Pepe"       (:deck/author parsed)
       "2016-12-12" (:deck/date parsed)
@@ -18,7 +18,7 @@
   (testing "Main header slide"
     (let [slide "# Main Header"
           parsed (parser/parse-slide slide 1)]
-      (is (s/valid? :showrum.spec/slide parsed))
+      (is (s/valid? :showrum.spec.decks/slide parsed))
       (is (= (:slide/type parsed) :type/main-header))
       (is (= (:slide/title parsed) "Main Header"))
       (is (= (:slide/order parsed) 1)))
@@ -31,7 +31,7 @@
   (testing "Header"
     (let [slide "## Header"
           parsed (parser/parse-slide slide 1)]
-      (is (s/valid? :showrum.spec/slide parsed))
+      (is (s/valid? :showrum.spec.decks/slide parsed))
       (is (= (:slide/type parsed) :type/header))
       (is (= (:slide/title parsed) "Header")))
     (let [slide "## Heading"
@@ -43,7 +43,7 @@
   (testing "Bullets"
     (let [slide "## Bullets\n\n* first\n* second"
           parsed (parser/parse-slide slide 1)]
-      (is (s/valid? :showrum.spec/slide parsed))
+      (is (s/valid? :showrum.spec.decks/slide parsed))
       (is (= (:slide/type parsed) :type/bullets))
       (is (= (:slide/title parsed) "Bullets"))
       (is (= (:slide/bullets parsed) ["first" "second"])))
@@ -53,21 +53,21 @@
   (testing "Text"
     (let [slide "## Text\n\nlike\nreally\nlong one"
           parsed (parser/parse-slide slide 1)]
-      (is (s/valid? :showrum.spec/slide parsed) "Valid spec")
+      (is (s/valid? :showrum.spec.decks/slide parsed) "Valid spec")
       (is (= (:slide/type parsed) :type/text))
       (is (= (:slide/title parsed) "Text"))
       (is (= (:slide/text parsed) "like really long one"))))
   (testing "Image slide"
     (let [slide "## Image slide\n\n![Image of you](http://you.me/image.png)"
           parsed (parser/parse-slide slide 1)]
-      (is (s/valid? :showrum.spec/slide parsed))
+      (is (s/valid? :showrum.spec.decks/slide parsed))
       (is (= (:slide/type parsed) :type/image))
       (is (= (:slide/title parsed) "Image slide"))
       (is (= (:slide/image parsed) "![Image of you](http://you.me/image.png)"))))
   (testing "Code slide"
     (let [slide "## Code slide\n\n```let a = \"World\";\nputs(\"Hello \" + a);```"
           parsed (parser/parse-slide slide 1)]
-      (is (s/valid? :showrum.spec/slide parsed))
+      (is (s/valid? :showrum.spec.decks/slide parsed))
       (is (= (:slide/type parsed) :type/code))
       (is (= (:slide/title parsed) "Code slide"))
       (is (= (:slide/code parsed) "let a = \"World\";\nputs(\"Hello \" + a);")))))
@@ -85,7 +85,7 @@
                       "\n\n---\n\n"
                       "## Image slide\n\n![Image of you](http://you.me/image.png)")
           deck (parser/parse-deck decks)]
-      (is (s/valid? :showrum.spec/deck deck))
+      (is (s/valid? :showrum.spec.decks/deck deck))
       (is (= (:deck/order deck) 1))
       (is (s/valid? (:deck/slides deck) (:slides deck))))))
 
@@ -115,10 +115,10 @@
           parsed (parser/parse-decks docs)
           decks  (filter :deck/title parsed)
           slides (:deck/slides (first decks))]
-      (is (s/valid? :showrum.spec/decks parsed))
+      (is (s/valid? :showrum.spec.decks/decks parsed))
       (is (= (count decks) 2))
       (is (= (map #(:deck/order %) decks) '(1 2)))
       (doseq [deck decks]
-        (is (s/valid? :showrum.spec/deck deck)))
+        (is (s/valid? :showrum.spec.decks/deck deck)))
       (doseq [slide slides]
-        (is (s/valid? :showrum.spec/slide slide))))))
+        (is (s/valid? :showrum.spec.decks/slide slide))))))
