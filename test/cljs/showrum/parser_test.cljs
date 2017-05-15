@@ -1,7 +1,7 @@
 (ns showrum.parser-test
   (:require-macros [cljs.test :refer [deftest testing is are]])
   (:require [cljs.test :as t]
-            [cljs.spec :as s]
+            [cljs.spec.alpha :as s]
             [showrum.spec.decks]
             [showrum.parser :as parser]))
 

@@ -1,5 +1,5 @@
 (ns showrum.spec.decks
-  (:require [cljs.spec :as s]))
+  (:require [cljs.spec.alpha :as s]))
 
 (def slide-type? #{:type/main-header :type/header :type/bullets
                    :type/text :type/image :type/code})
