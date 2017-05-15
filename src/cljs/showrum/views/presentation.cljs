@@ -17,4 +17,4 @@
         :type/text    [:p text]
         :type/image   [:div [:img {:src (last (re-matches #".*\((.*)\)" image))}]]
         :type/code    [:pre code]
-        nil)])])
+        [:div])])])
