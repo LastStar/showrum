@@ -108,6 +108,7 @@
                 :font-weight 900
                 :font-variant :none
                 :padding-left "5vw"
+                :margin-top "15vh"
                 :border-left [["2rem" grey :solid]]}]]
          [:&.text
           [:p
