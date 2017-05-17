@@ -16,7 +16,8 @@
 (defrecord ^:private NavigateUrl []
   ptk/EffectEvent
   (effect [_ {deck :deck/current slide :slide/current gist :db/gist} _]
-    (when (and deck slide gist)
+    (when (and (satisfies? router/IRouter routes/config)
+               (and deck slide gist))
       (router/navigate! routes/config
                         :showrum/presentation
                         {:deck deck :slide slide
@@ -59,7 +60,7 @@
       (assoc state :slide/current slide)
       state))
   ptk/WatchEvent
-  (watch [_ _ _]
+  (watch [_ state _]
     (rxt/just (->NavigateUrl))))
 
 (deftype NavigateNextSlide []
@@ -164,6 +165,29 @@
        (->InitSearchNavigation term)
        (->SetSearchResults rs)))))
 
+(defrecord SetHover []
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :navigation/hovered true)))
+
+(defn- set-hover? [i] (instance? SetHover i))
+
+(defrecord RemoveHover []
+  ptk/UpdateEvent
+  (update [_ state]
+    (assoc state :navigation/hovered false)))
+
+(defrecord SetLeft []
+  ptk/WatchEvent
+  (watch [_ state stream]
+    (let [stopper (->> (rxt/filter #(set-hover? %) stream)
+                       (rxt/take 1))]
+      (->>
+       (rxt/just (->RemoveHover))
+       (rxt/delay 2000)
+       (rxt/take-until stopper)))))
+
+
 (defn- in-presentation-map
   [key]
   (get {37 (->NavigatePreviousSlide)
@@ -187,22 +211,26 @@
 (deftype KeyPressed [key]
   ptk/WatchEvent
   (watch [_ {:keys [db/decks search/active search/result]} _]
-    (let [event (if active
-                  (in-search-map key result)
-                  (in-presentation-map key))]
-      (if event (rxt/just event) (rxt/empty)))))
+    (if-let [event (if active
+                     (in-search-map key result)
+                     (in-presentation-map key))]
+      (rxt/just event)
+      (rxt/empty))))
 
 (deftype RouteMatched [name params query]
+  ptk/UpdateEvent
+  (update [_ state]
+    (let [deck (js/parseInt (:deck params))
+          slide (js/parseInt (:slide params))]
+      (assoc state :slide/current slide :deck/current deck)))
   ptk/WatchEvent
-  (watch [_ {:db/keys [gist decks]} _]
+  (watch [_ {gist :db/gist} _]
     (case name
       :showrum/presentation
       (let [gist-from-url  (base64/decodeString
                             (js/decodeURIComponent (:gist params)))]
-        (rxt/of
-         (if-not (= gist-from-url gist)
-           (->InitializeGist gist-from-url)
-           (rxt/empty))
-         [->SetCurrentDeck (js/parseInt (:deck params))]
-         (->SetCurrentSlide (js/parseInt (:slide params)))))
+        (if-not (= gist-from-url gist)
+          (rxt/just (->InitializeGist gist-from-url))
+          (rxt/empty)))
+      :showrum/index
       (rxt/empty))))

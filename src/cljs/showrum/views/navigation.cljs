@@ -4,7 +4,7 @@
             [beicon.core :as rxt]
             [potok.core :as ptk]
             [showrum.events :refer [->NavigateNextSlide ->NavigatePreviousSlide
-                                    ->InitDeck ->ReloadPresentation]]))
+                                    ->InitDeck ->ReloadPresentation ->SetHover ->SetLeft]]))
 
 (rum/defc reload-button
   [store]
@@ -48,31 +48,22 @@
         :on-click #(ptk/emit! store (->InitDeck order))}
        title)])])
 
-(rum/defcs main < rum/reactive
-  (rum/local false ::hovered)
-  (rum/local nil ::timer)
-  [local-state store slides decks search-button current-slide]
+(rum/defc main < rum/reactive
+  [store slides decks search-button current-slide]
   (let [state         (rxt/to-atom store)
-        hovered       (::hovered local-state)
-        timer         (::timer local-state)
+        hovered       (rum/react (rum/cursor state :navigation/hovered))
         slides-count  (rum/react (rum/cursor state :deck/slides-count))
         current-deck  (rum/react (rum/cursor state :deck/current))
-        timeout       2000
-        clear-timer   #(when @timer (.clearTimeout js/window @timer))
-        set-timer     (fn []
-                        (reset! timer
-                                (js/window.setTimeout #(reset! hovered false)
-                                                      timeout)))
         search-active (rum/react (rum/cursor state :search/active))
-        hover-class   (if (or @hovered
+        hover-class   (if (or hovered
                               (= current-slide 1)
                               (= current-slide slides-count)
                               search-active)
                         "hovered" "")]
     [:div.navigation
      {:class          hover-class
-      :on-mouse-enter (fn [e] (clear-timer) (reset! hovered true))
-      :on-mouse-leave (fn [e] (clear-timer) (set-timer))}
+      :on-mouse-enter (fn [e] (ptk/emit! store (->SetHover)))
+      :on-mouse-leave (fn [e] (ptk/emit! store (->SetLeft)))}
      [:nav
       (reload-button store)
       [:span " "]

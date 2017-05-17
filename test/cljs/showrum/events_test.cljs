@@ -5,6 +5,7 @@
             [beicon.core :as rxt]
             [cljs.test :as t :include-macros true]))
 
+                                        ;FIXME: get initial state from showrum.store
 (defonce fixture
   {:db/init
    {:db/decks          '({:deck/author "Josef Pospíšil"
@@ -128,5 +129,21 @@
       (is (@evs (sut/->SetCurrentSlide 1)))
       (is (@evs (sut/->SetSlidesCount 1)))
       (is (@evs (sut/->ClearSearchTerm))))))
+
+(deftest test-navigation []
+  (let [init-state {:navigation/hovered false}]
+    (testing "Set Hover"
+      (let [ev (sut/->SetHover)]
+        (is (= (ptk/update ev init-state)
+               {:navigation/hovered true}))))
+    (testing "Remove Hover"
+      (let [ev (sut/->RemoveHover)]
+        (is (= (ptk/update ev init-state)
+               {:navigation/hovered false}))))
+    (testing "Set Left"
+      (let [ev (sut/->SetLeft)
+            st (ptk/watch ev init-state (rxt/empty))]
+        (is (= (-> st .-source .-operator .-delay) 2000))
+        (is (= (-> st .-source .-source .-value) (sut/->RemoveHover)))))))
 
                                         ;FIXME: add tests for KeyPressed, RouteMatched
