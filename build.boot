@@ -10,6 +10,7 @@
                  [org.clojure/clojurescript     "1.9.542"]
                  [rum                           "0.10.8"]
                  [rum-mdl                       "0.2.0"]
+                 [funcool/beicon                "3.5.0"]
                  [funcool/potok                 "2.1.0"]
                  [funcool/bide                  "1.4.0"]
                  [funcool/httpurr               "0.6.2"]

@@ -1,8 +1,8 @@
 (ns showrum.app
   (:require [rum.core :as rum]
             [bide.core :as router]
+            [beicon.core :as rxt]
             [potok.core :as ptk]
-            [goog.events :as events]
             [showrum.routes :as routes]
             [showrum.store :as store]
             [showrum.events :refer [->KeyPressed ->RouteMatched]]
@@ -10,15 +10,13 @@
   (:import goog.events.EventType))
 
 (defn init []
-  (let [store store/main]
+  (let [store store/main
+        key-stream (rxt/from-event js/document EventType.KEYDOWN)]
     (router/start!
      routes/config
      {:default     :showrum/index
       :on-navigate (fn [name params query]
                      (ptk/emit! store (->RouteMatched name params query)))})
-    (events/removeAll js/document EventType.KEYDOWN)
-    (events/listen js/document
-                   EventType.KEYDOWN
-                   #(ptk/emit! store (->KeyPressed (.-keyCode %))))
+    (rxt/on-value key-stream #(ptk/emit! store (->KeyPressed (.-keyCode %))))
     (rum/mount (views/main store)
                (js/document.getElementById "container"))))
