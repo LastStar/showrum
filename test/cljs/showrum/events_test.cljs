@@ -143,8 +143,9 @@
                {:navigation/hovered false}))))
     (testing "Set Left"
       (let [ev (sut/->SetLeft)
-            st (ptk/watch ev init-state (rxt/empty))]
-        (is (= (-> st .-source .-operator .-delay) 2000))
-        (is (= (-> st .-source .-source .-value) (sut/->RemoveHover)))))))
+            st (ptk/watch ev init-state (rxt/empty))
+            src (.-source st)]
+        (is (= (-> src .-operator .-delay) 2000))
+        (is (= (-> src .-source .-value) (sut/->RemoveHover)))))))
 
                                         ;FIXME: add tests for KeyPressed, RouteMatched

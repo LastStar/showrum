@@ -3,14 +3,13 @@
             [rum.mdl :as mdl]
             [beicon.core :as rxt]
             [potok.core :as ptk]
-            [showrum.events :refer [->NavigateNextSlide ->NavigatePreviousSlide
-                                    ->InitDeck ->ReloadPresentation ->SetHover ->SetLeft]]))
+            [showrum.events :as events]))
 
 (rum/defc reload-button
   [store]
   (mdl/button
    {:mdl [:fab :mini-fab :ripple]
-    :on-click #(ptk/emit! store (->ReloadPresentation))}
+    :on-click #(ptk/emit! store (events/->ReloadPresentation))}
    (mdl/icon "replay")))
 
 (defn- button
@@ -29,10 +28,10 @@
   [store slides-count current-slide]
   [:nav.slides
    (button (and (> current-slide 1) :active)
-           #(ptk/emit! store (->NavigatePreviousSlide))
+           #(ptk/emit! store (events/->NavigatePreviousSlide))
            "navigate_before")
    (button (and (< current-slide slides-count) :active)
-           #(ptk/emit! store (->NavigateNextSlide))
+           #(ptk/emit! store (events/->NavigateNextSlide))
            "navigate_next")])
 
 (rum/defc deck-chooser
@@ -45,7 +44,7 @@
       (mdl/button
        {:mdl      [:ripple]
         :disabled (= current-deck order)
-        :on-click #(ptk/emit! store (->InitDeck order))}
+        :on-click #(ptk/emit! store (events/->InitDeck order))}
        title)])])
 
 (rum/defc main < rum/reactive
@@ -62,8 +61,8 @@
                         "hovered" "")]
     [:div.navigation
      {:class          hover-class
-      :on-mouse-enter (fn [e] (ptk/emit! store (->SetHover)))
-      :on-mouse-leave (fn [e] (ptk/emit! store (->SetLeft)))}
+      :on-mouse-enter (fn [e] (ptk/emit! store (events/->SetHover)))
+      :on-mouse-leave (fn [e] (ptk/emit! store (events/->SetLeft)))}
      [:nav
       (reload-button store)
       [:span " "]

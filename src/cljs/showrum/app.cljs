@@ -5,18 +5,14 @@
             [potok.core :as ptk]
             [showrum.routes :as routes]
             [showrum.store :as store]
-            [showrum.events :refer [->KeyPressed ->RouteMatched]]
-            [showrum.views :as views])
-  (:import goog.events.EventType))
+            [showrum.events :as events]
+            [showrum.views :as views]))
 
 (defn init []
-  (let [store store/main
-        key-stream (rxt/from-event js/document EventType.KEYDOWN)]
+  (let [store store/main]
     (router/start!
      routes/config
      {:default     :showrum/index
       :on-navigate (fn [name params query]
-                     (ptk/emit! store (->RouteMatched name params query)))})
-    (rxt/on-value key-stream #(ptk/emit! store (->KeyPressed (.-keyCode %))))
-    (rum/mount (views/main store)
-               (js/document.getElementById "container"))))
+                     (ptk/emit! store (events/->RouteMatched name params query)))})
+    (rum/mount (views/main store) (js/document.getElementById "container"))))

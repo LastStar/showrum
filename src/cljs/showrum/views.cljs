@@ -3,33 +3,35 @@
             [rum.mdl :as mdl]
             [beicon.core :as rxt]
             [potok.core :as ptk]
-            [showrum.events :refer [->InitializeGist]]
+            [showrum.events :as events]
             [showrum.views.navigation :as navigation]
             [showrum.views.search :as search]
-            [showrum.views.presentation :as presentation]))
+            [showrum.views.presentation :as presentation])
+  (:import goog.events.EventType))
 
 (rum/defc gist-form [store err]
-  [:div.gist
-   (mdl/grid
-    (mdl/cell {:mdl [:2]})
-    (mdl/cell {:mdl [:8]}
-              [:h4 "No decks loaded. Please add uri for the gist."]
-              [:h5
-               {:style {:color :red}}
-               (when err (str "There was a " err))]
-              [:form
-               {:on-submit (fn [e]
-                             (.preventDefault e)
-                             (ptk/emit! store
-                                        (->InitializeGist
-                                         (-> e .-target (aget "gist") .-value))))}
-               [:div
-                (mdl/textfield
-                 {:style {:width "50rem"}}
-                 (mdl/textfield-input {:type "text" :id "gist"})
-                 (mdl/textfield-label {:for "gist"} "Gist URI"))]
-               [:div (mdl/button {:mdl [:raised :ripple]} "Parse")]])
-    (mdl/cell {:mdl [:2]}))])
+  (let [submit-fn (fn [e]
+                    (.preventDefault e)
+                    (ptk/emit! store
+                               (events/->InitializeGist
+                                (-> e .-target (aget "gist") .-value))))]
+    [:div.gist
+     (mdl/grid
+      (mdl/cell {:mdl [:2]})
+      (mdl/cell {:mdl [:8]}
+                [:h4 "No decks loaded. Please add uri for the gist."]
+                [:h5
+                 {:style {:color :red}}
+                 (when err (str "There was a " err))]
+                [:form
+                 {:on-submit submit-fn}
+                 [:div
+                  (mdl/textfield
+                   {:style {:width "50rem"}}
+                   (mdl/textfield-input {:type "text" :id "gist"})
+                   (mdl/textfield-label {:for "gist"} "Gist URI"))]
+                 [:div (mdl/button {:mdl [:raised :ripple]} "Parse")]])
+      (mdl/cell {:mdl [:2]}))]))
 
 (rum/defc footer [deck gist]
   (let [{:deck/keys [author date place]} deck]
@@ -43,6 +45,13 @@
   [:div.loading
    [:h2 "Initializing DB"]
    (mdl/spinner {:is-active true})])
+
+(defn- setup-key-stream [store]
+  (let [interval 750
+        event-stream (rxt/from-event js/document EventType.KEYDOWN)
+        key-stream (rxt/throttle interval event-stream)
+        emit-fn #(ptk/emit! store (events/->KeyPressed (.-keyCode %)))]
+    (rxt/on-value key-stream emit-fn)))
 
 (rum/defc main < rum/reactive [store]
   (let [state (rxt/to-atom store)
@@ -62,5 +71,7 @@
              (search/main store)
              (presentation/main slides current-slide)
              (footer deck gist)]])
-         (loading))
+         (do
+           (setup-key-stream store)
+           (loading)))
        (gist-form store err))]))
