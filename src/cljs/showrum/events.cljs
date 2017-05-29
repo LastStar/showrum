@@ -41,12 +41,12 @@
       (rxt/just (->NavigateUrl)) (rxt/empty))))
 
 (defrecord InitializeGist [gist]
-  ptk/WatchEvent
-  (watch [_ state _]
-    (rxt/from-promise (p/then (http/get client gist) ->SetFromGistContent)))
   ptk/UpdateEvent
   (update [_ state]
-    (assoc state :db/gist gist)))
+    (assoc state :db/gist gist :deck/current 1 :slide/current 1))
+  ptk/WatchEvent
+  (watch [_ state _]
+    (rxt/from-promise (p/then (http/get client gist) ->SetFromGistContent))))
 
 (deftype ReloadPresentation []
   ptk/WatchEvent

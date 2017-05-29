@@ -25,7 +25,8 @@
   (testing "Initialize Gist"
     (let [ev (sut/->InitializeGist "http://gist.github.com/")]
       (is (= (ptk/update ev {})
-             {:db/gist "http://gist.github.com/"}))))
+             {:db/gist "http://gist.github.com/"
+              :deck/current 1 :slide/current 1}))))
   (testing "Set From Gist Content Failed"
     (let [ev (sut/->SetFromGistContent {:status 404})]
       (is (= (ptk/update ev {})
