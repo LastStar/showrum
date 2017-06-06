@@ -33,13 +33,22 @@
                  [:div (mdl/button {:mdl [:raised :ripple]} "Parse")]])
       (mdl/cell {:mdl [:2]}))]))
 
-(rum/defc footer [deck gist]
-  (let [{:deck/keys [author date place]} deck]
+(rum/defc footer < rum/reactive [store deck gist current-slide]
+  (let [state                            (rxt/to-atom store)
+        {:deck/keys [author date place]} deck
+        hovered                          (-> state (rum/cursor :navigation/hovered) rum/react)
+
+        slides-count  (->  state (rum/cursor :deck/slides-count) rum/react)
+        hover-class (if (or hovered
+                            (= current-slide 1)
+                            (= current-slide slides-count))
+                        "hovered" "")]
     [:footer
+     {:class hover-class}
      [:div gist]
      [:div author]
      [:div date]
-     (when [:div place])]))
+     (when place [:div place])]))
 
 (rum/defc loading []
   [:div.loading
@@ -70,7 +79,7 @@
              (navigation/main store slides db #(search/button store) current-slide)
              (search/main store)
              (presentation/main slides current-slide)
-             (footer deck gist)]])
+             (footer store deck gist current-slide)]])
          (do
            (setup-key-stream store)
            (loading)))

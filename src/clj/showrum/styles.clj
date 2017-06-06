@@ -128,14 +128,19 @@
        {:display :flex
         :justify-content :space-between
         :position :absolute
-        :bottom "0"
+        :opacity 0.3
+        :bottom "-2.5rem"
         :right "0"
-        :width "40vw"
-        :padding "0.25rem 2vw 0.25rem 4vw"
-        :border-radius "0.25rem 0 0 0"
-        :color :white
+        :width "60vw"
+        :padding "0.5rem 2vw 0.5rem 4vw"
+        :border-radius "0.5rem 0 0 0"
+        :color lite-grey
         :background-color black
         :font-family "\"Roboto\", \"Helvetica\", \"Arial\", sans-serif"
-        :font-weight 100}]
+        :font-weight 100
+        :transition [:all :ease-out "750ms"]}
+       [:&.hovered
+        {:bottom "0"
+         :opacity 1}]]
       [:.loading
        {:padding [["20vh" "20vw"]]}]])))
