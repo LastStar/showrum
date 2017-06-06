@@ -51,7 +51,7 @@
 (deftype ReloadPresentation []
   ptk/WatchEvent
   (watch [_ {gist :db/gist} _]
-    (rxt/just (->InitializeGist gist))))
+    (rxt/from-promise (p/then (http/get client gist) ->SetFromGistContent))))
 
 (defrecord ^:private SetCurrentSlide [slide]
   ptk/UpdateEvent
