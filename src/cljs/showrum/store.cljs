@@ -1,6 +1,5 @@
 (ns showrum.store
-  (:require [rum.core :as rum]
-            [potok.core :as ptk]))
+  (:require [potok.core :as ptk]))
 
 (defonce ^:private initial-state
   {:state {:db/gist false :db/decks false

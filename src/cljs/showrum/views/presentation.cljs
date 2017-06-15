@@ -1,6 +1,5 @@
 (ns showrum.views.presentation
-  (:require [rum.core :as rum]
-            [beicon.core :as rx]))
+  (:require [rum.core :as rum])) 
 
 (rum/defc main
   [slides current-slide]
@@ -13,7 +12,7 @@
       {:key order :class (name type)}
       [:h1.title title]
       (case type
-        :type/bullets [:ul (for [item bullets] [:li {:key item} item])]
+        :type/bullets [:ul (for [bullet bullets] [:li {:key bullet} bullet])]
         :type/text    [:p text]
         :type/image   [:div [:img {:src (last (re-matches #".*\((.*)\)" image))}]]
         :type/code    [:pre code]
