@@ -130,15 +130,12 @@ body #container .page .deck .slide.bullets ul>li:before, body #container .page .
   background-color: hsl(0, 0%, 97%);
 }
 
-body #container .page .deck .slide.main-header, body #container .page .deck .note.main-header, body #container .page .notes .slide.main-header, body #container .page .notes .note.main-header {
-  margin-left: 5vw;
-}
-
 body #container .page .deck .slide.main-header h1, body #container .page .deck .note.main-header h1, body #container .page .notes .slide.main-header h1, body #container .page .notes .note.main-header h1 {
   font-size: 10rem;
   font-weight: 900;
   font-variant: none;
   padding-left: 5vw;
+  margin-top: 15vh;
   border-left: 2rem hsl(0, 0%, 97%) solid;
 }
 
@@ -152,22 +149,38 @@ body #container .page .deck .slide.image h1.title, body #container .page .deck .
   font-size: 2.985984rem;
 }
 
+body #container .page .deck .slide pre, body #container .page .deck .note pre, body #container .page .notes .slide pre, body #container .page .notes .note pre {
+  font-size: 2.985984rem;
+  line-height: 4rem;
+}
+
 body #container .page .deck .note, body #container .page .notes .note {
   font-size: 3rem;
   line-height: 4.5rem;
 }
 
 body #container footer {
-  width: 40vw;
+  width: 60vw;
   right: 0;
   justify-content: space-between;
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-  padding: 0.25rem 2vw 0.25rem 4vw;
+  padding: 0.5rem 2vw 0.5rem 4vw;
   position: absolute;
   font-weight: 100;
   background-color: hsl(0, 0%, 15%);
-  border-radius: 0.25rem 0 0 0;
+  border-radius: 0.5rem 0 0 0;
   display: flex;
+  bottom: -2.5rem;
+  transition: all, ease-out, 750ms;
+  color: hsla(0, 0%, 97%, 0.97);
+  opacity: 0.3;
+}
+
+body #container footer.hovered {
   bottom: 0;
-  color: white;
+  opacity: 1;
+}
+
+body #container .loading {
+  padding: 20vh 20vw;
 }
