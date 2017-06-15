@@ -7,7 +7,7 @@
                  [com.cemerick/piggieback       "0.2.1"          :scope "test"]
                  [org.clojure/tools.nrepl       "0.2.13"         :scope "test"]
                  [weasel                        "0.7.0"          :scope "test"]
-                 [org.clojure/clojurescript     "1.9.542"]
+                 [org.clojure/clojurescript     "1.9.562"]
                  [rum                           "0.10.8"]
                  [rum-mdl                       "0.2.0"]
                  [funcool/beicon                "3.5.0"]
@@ -16,7 +16,7 @@
                  [funcool/httpurr               "0.6.2"]
                  [kibu/pushy                    "0.3.6"]
                  [binaryage/devtools            "0.9.2"          :scope "test"]
-                 [binaryage/dirac               "1.2.9"          :scope "test"]
+                 [binaryage/dirac               "1.2.10"         :scope "test"]
                  [powerlaces/boot-cljs-devtools "0.2.0"          :scope "test"]
                  [crisptrutski/boot-cljs-test   "0.3.0"          :scope "test"]
                  [org.martinklepsch/boot-garden "1.2.5-3"        :scope "test"]])
