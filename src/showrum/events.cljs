@@ -2,13 +2,11 @@
   (:require [potok.core :as ptk]
             [goog.crypt.base64 :as base64]
             [beicon.core :as rxt]
-            [promesa.core :as p]
-            [httpurr.client :as http]
-            [httpurr.client.xhr :refer [client]]
-            [httpurr.status :as status]
             [bide.core :as router]
+            [rxhttp.browser :as http]
             [showrum.routes :as routes]
             [showrum.parser :as parser]))
+
 
 (defn- look-up [deck decks]
   (some #(and (= deck (:deck/order %)) %) decks))
@@ -26,7 +24,7 @@
 (deftype ^:private SetFromGistContent [gist-response]
   ptk/UpdateEvent
   (update [_ {deck :deck/current :as state}]
-    (if (status/success? gist-response)
+    (if gist-response
       (let [decks  (parser/parse-decks (:body gist-response))
             row-fn (fn [{:deck/keys [order title slides]}]
                      (map (fn [{so :slide/order st :slide/title}] [order title so st (count slides)])
@@ -46,12 +44,19 @@
     (assoc state :db/gist gist :deck/current 1 :slide/current 1))
   ptk/WatchEvent
   (watch [_ state _]
-    (rxt/from-promise (p/then (http/get client gist) ->SetFromGistContent))))
+    (rxt/map ->SetFromGistContent
+             (http/send! {:method  :get
+                          :url     gist
+                          :headers {:content-type "application/json"}}))))
+
 
 (deftype ReloadPresentation []
   ptk/WatchEvent
   (watch [_ {gist :db/gist} _]
-    (rxt/from-promise (p/then (http/get client gist) ->SetFromGistContent))))
+    (rxt/map ->SetFromGistContent
+             (http/send! {:method  :get
+                          :url     gist
+                          :headers {:content-type "application/json"}}))))
 
 (defrecord ^:private SetCurrentSlide [slide]
   ptk/UpdateEvent

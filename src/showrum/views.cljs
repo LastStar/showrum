@@ -1,9 +1,9 @@
 (ns showrum.views
   (:require [rum.core :as rum]
-            [rum.mdl :as mdl]
             [beicon.core :as rxt]
             [potok.core :as ptk]
             [showrum.events :as events]
+            [showrum.material :as material]
             [showrum.views.navigation :as navigation]
             [showrum.views.search :as search]
             [showrum.views.presentation :as presentation])
@@ -16,22 +16,18 @@
                                (events/->InitializeGist
                                 (-> e .-target (aget "gist") .-value))))]
     [:div.gist
-     (mdl/grid
-      (mdl/cell {:mdl [:2]})
-      (mdl/cell {:mdl [:8]}
-                [:h4 "No decks loaded. Please add uri for the gist."]
-                [:h5
-                 {:style {:color :red}}
-                 (when err (str "There was a " err))]
-                [:form
-                 {:on-submit submit-fn}
-                 [:div
-                  (mdl/textfield
-                   {:style {:width "50rem"}}
-                   (mdl/textfield-input {:type "text" :id "gist"})
-                   (mdl/textfield-label {:for "gist"} "Gist URI"))]
-                 [:div (mdl/button {:mdl [:raised :ripple]} "Parse")]])
-      (mdl/cell {:mdl [:2]}))]))
+     [:h4 "No decks loaded. Please add uri for the gist."]
+     [:h5
+      {:style {:color :red}}
+      (when err (str "There was a " err))]
+     [:form
+      {:on-submit submit-fn}
+      [:div
+       (material/TextField
+        {:required true :default-value name :name "gist" :style {:width "50rem"}}
+        "Gist")]
+      [:div (material/Button {} "Parse")]]]))
+
 
 (rum/defc footer < rum/reactive [store deck gist current-slide]
   (let [state                            (rxt/to-atom store)
@@ -42,7 +38,7 @@
         hover-class (if (or hovered
                             (= current-slide 1)
                             (= current-slide slides-count))
-                        "hovered" "")]
+                      "hovered" "")]
     [:footer
      {:class hover-class}
      [:div gist]
@@ -50,10 +46,11 @@
      [:div date]
      (when place [:div place])]))
 
+
 (rum/defc loading []
   [:div.loading
-   [:h2 "Initializing DB"]
-   (mdl/spinner {:is-active true})])
+   [:h2 "Initializing DB"]])
+
 
 (defn- setup-key-stream [store]
   (let [interval     750

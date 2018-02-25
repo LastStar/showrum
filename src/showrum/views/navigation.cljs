@@ -1,24 +1,16 @@
 (ns showrum.views.navigation
   (:require [rum.core :as rum]
-            [rum.mdl :as mdl]
             [beicon.core :as rxt]
             [potok.core :as ptk]
-            [showrum.events :as events]))
+            [showrum.events :as events]
+            [showrum.material :as material]))
 
 (rum/defc reload-button
   [store]
-  (mdl/button
-   {:mdl [:fab :mini-fab :ripple]
-    :on-click #(ptk/emit! store (events/->ReloadPresentation))}
-   (mdl/icon "replay")))
+  (material/Fab
+   {:on-click #(ptk/emit! store (events/->ReloadPresentation))}
+   "replay"))
 
-(defn- button
-  [active event icon]
-  (mdl/button
-   {:mdl      [:fab :mini-fab :ripple]
-    :on-click (when active event)
-    :disabled (not active)}
-   (mdl/icon icon)))
 
 (rum/defc slides-counter
   [current-slide slides-count]
@@ -27,12 +19,18 @@
 (rum/defc slide-navigation
   [store slides-count current-slide]
   [:nav.slides
-   (button (and (> current-slide 1) :active)
-           #(ptk/emit! store (events/->NavigatePreviousSlide))
-           "navigate_before")
-   (button (and (< current-slide slides-count) :active)
-           #(ptk/emit! store (events/->NavigateNextSlide))
-           "navigate_next")])
+   (let [disabled (= current-slide 1)]
+    (material/Fab
+     {:disabled disabled
+      :class (when disabled "inactive")
+      :on-click #(ptk/emit! store (events/->NavigatePreviousSlide))}
+     "navigate_before"))
+   (let [disabled (>= current-slide slides-count)]
+    (material/Fab
+     {:disabled disabled
+      :class (when disabled "inactive")
+      :on-click #(ptk/emit! store (events/->NavigateNextSlide))}
+     "navigate_next"))])
 
 (rum/defc deck-chooser
   [store decks current-deck]
@@ -41,9 +39,8 @@
    (for [{:deck/keys [order title slides]} decks]
      [:div
       {:key (str current-deck order)}
-      (mdl/button
-       {:mdl      [:ripple]
-        :disabled (= current-deck order)
+      (material/Button
+       {:disabled (= current-deck order)
         :on-click #(ptk/emit! store (events/->InitDeck order))}
        title)])])
 

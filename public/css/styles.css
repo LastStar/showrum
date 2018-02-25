@@ -1,0 +1,188 @@
+body {
+    color: hsl(0, 0%, 15%);
+    overflow: hidden;
+}
+
+body #container {
+    width: 100vw;
+    height: 100vh;
+}
+
+body #container .page {
+    width: 100vw;
+    height: 100vh;
+}
+
+body #container .page div.navigation {
+    width: 90vw;
+    top: 2vh;
+    justify-content: space-between;
+    transition-delay: 2s;
+    align-items: center;
+    position: absolute;
+    z-index: 10;
+    background-color: hsl(0, 0%, 97%);
+    border-radius: 1.5rem;
+    display: flex;
+    transition: opacity 3s;
+    opacity: 0.075;
+    left: 5vw;
+}
+
+body #container .page div.navigation.hovered {
+    opacity: 1;
+    transition: opacity 1s;
+    transition-delay: 0;
+}
+
+body #container .page div.navigation.hovered nav {
+    opacity: 1 !important;
+    transition: opacity 250ms;
+}
+
+body #container .page div.navigation.hovered div.counter {
+    opacity: 1 !important;
+    transition: opacity 150ms;
+}
+
+body #container .page div.navigation nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: opacity 1s;
+    opacity: 0;
+}
+
+body #container .page div.navigation nav.slides button:first-child {
+    margin-right: 1rem;
+}
+
+body #container .page div.navigation div.counter {
+    font-size: 2.0rem;
+    font-weight: 900;
+    width: 10vw;
+    text-align: right;
+    padding-right: 1rem;
+}
+
+body #container .page div.search-panel {
+    position: absolute;
+    z-index: 10;
+    top: 8rem;
+    left: 7vw;
+    padding: 0 2rem;
+    background-color: hsla(0, 0%, 97%, 0.97);
+}
+
+body #container .page div.search-panel div.search-results li {
+    list-style: none;
+}
+
+
+body #container .page div.search-panel div.search-results li.active {
+    cursor: pointer;
+    background-color: white;
+}
+
+body #container .page .deck {
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    transition: transform 750ms cubic-bezier(0.18, 0.89, 0.41, 1.05);
+}
+
+body #container .page .deck h2 {
+    font-size: 6rem;
+    font-variant: small-caps;
+    font-weight: 100;
+}
+
+body #container .page .deck .slide {
+    margin: 10vh 10vw;
+    height: 80vh;
+    width: 80vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+body #container .page .deck .slide.bullets {
+    justify-content: space-between;
+}
+
+body #container .page .deck .slide.bullets ul {
+    margin-bottom: 10rem;
+    padding-left: 0;
+}
+
+body #container .page .deck .slide.bullets ul>li {
+    font-size: 4.299696rem;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    line-height: 6.191562244rem;
+    list-style-type: none;
+}
+
+body #container .page .deck .slide.bullets ul>li:before {
+    width: 2rem;
+    margin: 1px 2rem 1px 0;
+    border-radius: 4px;
+    display: inline-block;
+    content: " ";
+    background-color: hsl(0, 0%, 97%);
+}
+
+body #container .page .deck .slide.main-header h1 {
+    font-size: 10rem;
+    font-weight: 900;
+    line-height: 11rem;
+    padding-left: 5vw;
+    margin-top: 15vh;
+    border-left: 2rem hsl(0, 0%, 97%) solid;
+}
+
+body #container .page .deck .slide.text p {
+    font-size: 2.985984rem;
+    line-height: 4.29981696rem;
+}
+
+body #container .page .deck .slide.image h1.title {
+    font-size: 2.985984rem;
+}
+
+body #container .page .deck .slide pre {
+    font-size: 2.985984rem;
+    line-height: 4rem;
+}
+
+body #container footer {
+    width: 60vw;
+    right: 0;
+    justify-content: space-between;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    padding: 0.5rem 2vw 0.5rem 4vw;
+    position: absolute;
+    font-weight: 100;
+    background-color: hsl(0, 0%, 15%);
+    border-radius: 0.5rem 0 0 0;
+    display: flex;
+    bottom: -2.5rem;
+    transition: all, ease-out, 750ms;
+    color: hsla(0, 0%, 97%, 0.97);
+    opacity: 0.3;
+}
+
+body #container footer.hovered {
+    bottom: 0;
+    opacity: 1;
+}
+
+body #container .loading {
+    padding: 20vh 20vw;
+}
+
+button.mdc-fab.material-icons.inactive {
+    background: var(--mdc-theme-text-disabled-on-primary-light);
+}

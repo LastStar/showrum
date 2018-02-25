@@ -1,0 +1,24 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src"]
+
+ :dependencies
+ [[binaryage/devtools "0.9.8"]
+  [binaryage/dirac    "1.2.30"]
+  [rum                "0.11.0"]
+  [funcool/beicon     "4.1.0"]
+  [funcool/potok      "2.3.0"]
+  [funcool/bide       "1.6.0"]
+  [funcool/rxhttp     "1.0.0-SNAPSHOT"]
+  [kibu/pushy         "0.3.6"]]
+
+
+ :builds
+ {:client {:target     :browser
+           :modules    {:app {:entries [showrum.app]}}
+           :output-dir "public/js"
+           :asset-path "/js"
+           :devtools   {:http-root  "public"
+                        :http-port  8280
+                        :after-load showrum.app/mount-root
+                        :preloads   [dirac.runtime.preload devtools.preload]}}}}
