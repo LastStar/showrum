@@ -56,10 +56,10 @@
    (mdl/spinner {:is-active true})])
 
 (defn- setup-key-stream [store]
-  (let [interval 750
+  (let [interval     750
         event-stream (rxt/from-event js/document EventType.KEYDOWN)
-        key-stream (rxt/throttle interval event-stream)
-        emit-fn #(ptk/emit! store (events/->KeyPressed (.-keyCode %)))]
+        key-stream   (rxt/throttle interval event-stream)
+        emit-fn      #(ptk/emit! store (events/->KeyPressed (.-keyCode %)))]
     (rxt/on-value key-stream emit-fn)))
 
 (rum/defc main < rum/reactive [store]

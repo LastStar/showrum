@@ -16,8 +16,8 @@
                  [funcool/bide                  "1.4.0"]
                  [funcool/httpurr               "0.6.2"]
                  [kibu/pushy                    "0.3.6"]
-                 [binaryage/devtools            "0.9.7"          :scope "test"]
-                 [binaryage/dirac               "1.2.17"         :scope "test"]
+                 [binaryage/devtools            "0.9.8"          :scope "test"]
+                 [binaryage/dirac               "1.2.30"         :scope "test"]
                  [powerlaces/boot-cljs-devtools "0.2.0"          :scope "test"]
                  [crisptrutski/boot-cljs-test   "0.3.0"          :scope "test"]
                  [org.martinklepsch/boot-garden "1.2.5-3"        :scope "test"]])
