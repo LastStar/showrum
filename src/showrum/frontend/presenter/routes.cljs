@@ -1,4 +1,4 @@
-(ns showrum.routes
+(ns showrum.frontend.presenter.routes
   (:require [bide.core :as router]))
 
 (def config

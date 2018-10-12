@@ -1,24 +1,23 @@
-(ns showrum.views.navigation
+(ns showrum.frontend.presenter.views.navigation
   (:require [rum.core :as rum]
-            [rum.mdl :as mdl]
             [beicon.core :as rxt]
             [potok.core :as ptk]
-            [showrum.events :as events]))
+            [mdc-rum.core :as mdc]
+            [mdc-rum.components :as mdcc]
+            [showrum.frontend.presenter.events :as events]))
 
 (rum/defc reload-button
   [store]
-  (mdl/button
-   {:mdl [:fab :mini-fab :ripple]
-    :on-click #(ptk/emit! store (events/->ReloadPresentation))}
-   (mdl/icon "replay")))
+  (mdcc/button
+   {:on-click #(ptk/emit! store (events/->ReloadPresentation))}
+   [mdc/icon "replay"]))
 
 (defn- button
   [active event icon]
-  (mdl/button
-   {:mdl      [:fab :mini-fab :ripple]
-    :on-click (when active event)
+  (mdcc/button
+   {:on-click (when active event)
     :disabled (not active)}
-   (mdl/icon icon)))
+   [mdc/icon icon]))
 
 (rum/defc slides-counter
   [current-slide slides-count]
@@ -41,9 +40,8 @@
    (for [{:deck/keys [order title slides]} decks]
      [:div
       {:key (str current-deck order)}
-      (mdl/button
-       {:mdl      [:ripple]
-        :disabled (= current-deck order)
+      (mdcc/button
+       {:disabled (= current-deck order)
         :on-click #(ptk/emit! store (events/->InitDeck order))}
        title)])])
 

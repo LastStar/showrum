@@ -1,3 +1,0 @@
-{:require  [showrum.app]
- :init-fns [showrum.app/init]
- :compiler-options {:asset-path "js/app.out"}}

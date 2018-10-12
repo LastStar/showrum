@@ -1,5 +1,5 @@
-(ns showrum.views.presentation
-  (:require [rum.core :as rum])) 
+(ns showrum.frontend.presenter.views.presentation
+  (:require [rum.core :as rum]))
 
 (rum/defc main
   [slides current-slide]
