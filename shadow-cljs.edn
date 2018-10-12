@@ -1,0 +1,26 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src"]
+
+ :dependencies
+ [[garden             "1.3.5"]
+  [hiccup             "1.0.5"]
+
+  [binaryage/devtools "0.9.10"]
+
+  [rum                "0.11.0"]
+  [com.rpl/specter    "1.1.0"]
+  [funcool/potok      "2.3.0"]
+  [funcool/beicon     "4.1.0"]
+  [funcool/rxhttp     "1.0.0-SNAPSHOT"]
+  [funcool/bide       "1.6.0"]]
+
+ :builds
+ {:presenter {:target     :browser
+              :modules    {:mdc       {:entries [mdc-rum.core]}
+                           :presenter {:entries    [showrum.frontend.presenter.app]
+                                       :depends-on #{:mdc}}}
+              :output-dir "public/js"
+              :asset-path "/js"
+              :devtools   {:http-root "public"
+                           :http-port 8280}}}}

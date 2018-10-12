@@ -1,4 +1,4 @@
-(ns showrum.store
+(ns showrum.frontend.presenter.store
   (:require [potok.core :as ptk]))
 
 (defonce ^:private initial-state
@@ -10,4 +10,3 @@
 
 (defonce main
   (ptk/store initial-state))
-

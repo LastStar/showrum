@@ -1,37 +1,31 @@
-(ns showrum.views
+(ns showrum.frontend.presenter.views
   (:require [rum.core :as rum]
-            [rum.mdl :as mdl]
+            [mdc-rum.core :as mdc]
+            [mdc-rum.components :as mdcc]
             [beicon.core :as rxt]
             [potok.core :as ptk]
-            [showrum.events :as events]
-            [showrum.views.navigation :as navigation]
-            [showrum.views.search :as search]
-            [showrum.views.presentation :as presentation])
+            [showrum.frontend.presenter.events :as events]
+            [showrum.frontend.presenter.views.navigation :as navigation]
+            [showrum.frontend.presenter.views.search :as search]
+            [showrum.frontend.presenter.views.presentation :as presentation])
   (:import goog.events.EventType))
 
 (rum/defc gist-form [store err]
-  (let [submit-fn (fn [e]
-                    (.preventDefault e)
-                    (ptk/emit! store
-                               (events/->InitializeGist
-                                (-> e .-target (aget "gist") .-value))))]
-    [:div.gist
-     (mdl/grid
-      (mdl/cell {:mdl [:2]})
-      (mdl/cell {:mdl [:8]}
-                [:h4 "No decks loaded. Please add uri for the gist."]
-                [:h5
-                 {:style {:color :red}}
-                 (when err (str "There was a " err))]
-                [:form
-                 {:on-submit submit-fn}
-                 [:div
-                  (mdl/textfield
-                   {:style {:width "50rem"}}
-                   (mdl/textfield-input {:type "text" :id "gist"})
-                   (mdl/textfield-label {:for "gist"} "Gist URI"))]
-                 [:div (mdl/button {:mdl [:raised :ripple]} "Parse")]])
-      (mdl/cell {:mdl [:2]}))]))
+  [:div.gist
+   {:style {:margin "1rem auto" :width "66vw"}}
+   [mdc/typo-headline-4 "No decks loaded. Please add uri for the gist."]
+   (when err
+     [mdc/typo-headline-5 {:style {:color :red}} (str "There was a " err)])
+   [:form
+    {:on-submit (fn [e]
+                  (.preventDefault e)
+                  (ptk/emit! store
+                             (events/->InitializeGist
+                              (-> e .-target (aget "gist") .-value))))}
+    (mdcc/text-field {:style {:width "66vw"}} :gist "Gist URL")
+    [:div
+     {:style {:text-align :right}}
+     (mdcc/button {} "Parse")]]])
 
 (rum/defc footer < rum/reactive [store deck gist current-slide]
   (let [state                            (rxt/to-atom store)
@@ -42,7 +36,7 @@
         hover-class (if (or hovered
                             (= current-slide 1)
                             (= current-slide slides-count))
-                        "hovered" "")]
+                      "hovered" "")]
     [:footer
      {:class hover-class}
      [:div gist]
@@ -53,7 +47,7 @@
 (rum/defc loading []
   [:div.loading
    [:h2 "Initializing DB"]
-   (mdl/spinner {:is-active true})])
+   #_(mdl/spinner {:is-active true})])
 
 (defn- setup-key-stream [store]
   (let [interval 750

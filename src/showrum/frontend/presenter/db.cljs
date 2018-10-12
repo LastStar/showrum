@@ -1,4 +1,4 @@
-(ns showrum.db
+(ns showrum.frontend.presenter.db
   (:require [cljs.spec :as s]
             [datascript.core :as d]
             [showrum.spec]))
