@@ -1,7 +1,6 @@
-/target
-/.nrepl-port
-/out
-.DS_Store
-/docs/js/app.cljs.edn
-/docs/js/app.out/
-
+out/
+dist/
+.shadow-cljs/
+node_modules/
+public/
+.nrepl-port

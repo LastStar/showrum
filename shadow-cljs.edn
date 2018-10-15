@@ -12,15 +12,18 @@
   [com.rpl/specter    "1.1.0"]
   [funcool/potok      "2.3.0"]
   [funcool/beicon     "4.1.0"]
-  [funcool/rxhttp     "1.0.0-SNAPSHOT"]
-  [funcool/bide       "1.6.0"]]
+  [funcool/bide       "1.6.0"]
+  [funcool/rxhttp     "1.0.0-SNAPSHOT"]]
 
  :builds
- {:presenter {:target     :browser
-              :modules    {:mdc       {:entries [mdc-rum.core]}
-                           :presenter {:entries    [showrum.frontend.presenter.app]
-                                       :depends-on #{:mdc}}}
-              :output-dir "public/js"
-              :asset-path "/js"
-              :devtools   {:http-root "public"
-                           :http-port 8280}}}}
+ {:presenter {:target           :browser
+              :modules          {:mdc       {:entries [mdc-rum.core]}
+                                 :presenter {:entries    [showrum.frontend.presenter.app]
+                                             :depends-on #{:mdc}}}
+              :output-dir       "public/js"
+              :asset-path       "/js"
+              :devtools         {:http-root "public"
+                                 :http-port 8280}
+              :release          {:output-dir        "dist/presenter"
+                                 :module-hash-names 8
+                                 :build-options     {:manifest-name "assets.edn"}}}}}
