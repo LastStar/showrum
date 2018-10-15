@@ -8,11 +8,9 @@ The production build can be found on [GitHub Page](https://laststar.github.io/sh
 
 ## Development and whatever
 
-You need [Clojure](http://clojure.org) and [Boot](http://boot-clj.com).
+You need [Clojure](http://clojure.org) and [shadow-cljs](http://http://shadow-cljs.org).
 
-When setup, just run `boot dev` to run development server. Or `boot prod` to build production version.
-
-Then head to [http://localhost:3000/](http://localhost:3000/), supply the link to the your gist with Markdown (or use [a sample](https://raw.githubusercontent.com/pepe/culs-backend-summer-2018/master/presentation.md)) and you should be set.
+When setup, just run `shadow-cljs server` to run development server. Then head to [http://localhost:8280/](http://localhost:8280/), supply the link to the your gist with Markdown (or use [a sample](https://raw.githubusercontent.com/pepe/culs-backend-summer-2018/master/presentation.md)) and you should be set.
 
 Have fun!
   
