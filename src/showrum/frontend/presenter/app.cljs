@@ -1,5 +1,7 @@
 (ns showrum.frontend.presenter.app
-  (:require [rum.core :as rum]
+  (:require ["react-dom" :as dom]
+            [hx.react :as hx]
+
             [bide.core :as router]
             [beicon.core :as rxt]
             [potok.core :as ptk]
@@ -11,7 +13,9 @@
 (defonce store (atom nil))
 
 (defn ^:dev/after-load start []
-  (rum/mount (views/main @store) (. js/document (getElementById "container"))))
+  (dom/render
+   (hx/f [views/Page {:store @store}])
+   (. js/document (getElementById "container"))))
 
 (defn ^:export init []
   (reset! store store/main)
