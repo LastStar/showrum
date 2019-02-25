@@ -101,7 +101,7 @@
              :margin "1px 2rem 1px 0"
              :border-radius "4px"
              :display :inline-block
-             :content "\"\u00A0\""
+             :content "\" \""
              :background-color grey}]]]]
         [:&.main-header
          [:h1 {:font-size "10rem"

@@ -1,7 +1,26 @@
 (ns mdc-rum.components
-  (:require [rum.core :as rum]
+  (:require ["react" :as react]
+            ["@material/textfield" :as text-field]
+            [rum.core :as rum]
+            [hx.react :as hx]
+            [hx.hooks :as hooks]
             [mdc-rum.core :as mdc]
             [mdc-rum.mixins :as mixins]))
+
+(hx/defnc FloatingLabel [{:keys [:input-name label]}]
+  [:label.mdc-floating-label
+   {:for   input-name}
+   label])
+
+(hx/defnc TextField [props]
+  (let [ref (react/useRef nil)]
+    (hooks/<-effect #(when (.-current ref)
+                       (js/console.log (.-current ref))
+                       (text-field/MDCTextField.attachTo (.-current ref))))
+    [:div.mdc-text-field
+     {:ref ref}
+     [:input.mdc-text-field__input (dissoc props :children)]
+     (:children props)]))
 
 (rum/defc text-field < mixins/attach-text-field rum/static
   [opts input-name label]
