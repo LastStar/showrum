@@ -3,13 +3,13 @@
     "shadow-cljs": "^2.1.26"
   },
   "dependencies": {
-    "@material/fab": "^0.31.0",
-    "@material/ripple": "^0.31.0",
-    "@material/textfield": "^0.31.0",
+    "@material/fab": "^0.44.1",
+    "@material/ripple": "^0.44.1",
+    "@material/textfield": "^0.44.1",
     "bluebird": "^3.5.1",
     "create-react-class": "^15.6.3",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
-    "rxjs": "^5.5.6"
+    "rxjs": "^6.4.0"
   }
 }

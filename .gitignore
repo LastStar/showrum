@@ -6,3 +6,4 @@
 /docs/js/app.out/
 /node_modules
 /public/js/
+/.shadow-cljs
