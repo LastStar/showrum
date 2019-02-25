@@ -21,7 +21,7 @@
   (let [app         (cond-> app (string? app) keyword)
         config      (shadow/get-build-config app)
         dist        (str (S/select-one [:release :output-dir] config) "/")]
-    (shell/sh "npm" "install")
+    (shell/sh "yarn" "install")
     (shell/sh "rm" "-rf" dist)
     (shadow/release app)
     (shell/sh "mkdir" "-p" (str dist "css"))
@@ -46,7 +46,7 @@
   (let [app (cond-> app (string? app) keyword)
         config (shadow/get-build-config app)
         dist (str (S/select-one [:devtools :http-root] config) "/")]
-    (shell/sh "npm" "install")
+    (shell/sh "yarn" "install")
     (shell/sh "rm" "-rf" dist)
     (shadow/compile app)
     (shell/sh "mkdir" "-p" (str dist "css"))

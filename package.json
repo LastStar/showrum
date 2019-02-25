@@ -3,12 +3,12 @@
     "shadow-cljs": "^2.6.10"
   },
   "dependencies": {
-    "@material/button": "^0.40.1",
-    "@material/layout-grid": "^0.40.1",
-    "@material/list": "^0.40.1",
-    "@material/ripple": "^0.40.1",
-    "@material/select": "^0.40.1",
-    "@material/textfield": "^0.40.1",
+    "@material/button": "^0.44.1",
+    "@material/layout-grid": "^0.41.0",
+    "@material/list": "^0.44.1",
+    "@material/ripple": "^0.44.1",
+    "@material/select": "^0.44.1",
+    "@material/textfield": "^0.44.1",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
     "rxjs": "^6.3.3",
