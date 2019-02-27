@@ -115,6 +115,7 @@
 (deftype ToggleSearchPanel []
   ptk/UpdateEvent
   (update [_ state]
+    (js/console.log "Togggling")
     (update state :search/active not)))
 
 (defrecord ^:private InitSearchNavigation [term]

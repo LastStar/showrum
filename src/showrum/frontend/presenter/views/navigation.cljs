@@ -50,15 +50,12 @@
 
 (hx/defnc Main [{:keys [store slides decks current-slide]}]
   (let [state                          (rxt/to-atom store)
-        derive-fn                      #(select-keys % [:db/decks :slide/current
-                                                        :deck/slides-count :deck/current
-                                                        :navigation/hovered :search/active])
-        {decks         :db/decks
-         current-slide :slide/current
-         hovered       :navigation/hovered
-         slides-count  :deck/slides-count
-         current-deck  :deck/current
-         search-active :search/active} (hooks/<-derive state derive-fn)
+        decks         (hooks/<-derive state :db/decks)
+        hovered       (hooks/<-derive state :navigation/hovered)
+        current-slide (hooks/<-derive state :slide/current)
+        slides-count  (hooks/<-derive state :deck/slides-count)
+        current-deck  (hooks/<-derive state :deck/current)
+        search-active (hooks/<-derive state :search/active)
         slides                         (:deck/slides current-deck)
         hover-class                    (if (or hovered
                                                (= current-slide 1)

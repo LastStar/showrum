@@ -21,10 +21,10 @@
         (let [id (gensym "<-derive")]
           (add-watch a id
                      ;; update the react state on each change
-                     (fn [_ _ _ v']
-                       (let [d (f v')]
-                         (js/console.log v d (= v d))
-                         (if-not (= v d) (u d)))))
+                     (fn [_ _ s s']
+                       (let [od (f s)
+                             nd (f s')]
+                         (if-not (= od nd) (u nd)))))
           ;; return a function to tell react hook how to unsubscribe
           #(remove-watch a id)))
       ;; pass in deps vector as an array

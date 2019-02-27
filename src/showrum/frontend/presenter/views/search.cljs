@@ -48,9 +48,10 @@
            [:p "No results for \"" [:strong term] "\""])])))
 
 (hx/defnc Main [{store :store}]
-  (let [state (rxt/to-atom store)
+  (let [state  (rxt/to-atom store)
         active (hooks/<-derive state :search/active)]
-    (if active
+    (js/console.log @state active)
+    (when active
       [:div {:class "search-panel"}
        [InputField {:store store}]
        [ResultsList {:store store}]])))
