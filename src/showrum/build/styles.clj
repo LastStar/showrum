@@ -30,7 +30,8 @@
         :transition [[:opacity "3s"]]
         :transition-delay "2s"
         :opacity 0.075
-        :z-index 10}
+        :z-index 10
+        :overflow :hidden}
        [:&.hovered
         {:opacity 1
          :transition [[:opacity "1s"]]
@@ -62,8 +63,8 @@
         :z-index 10
         :top "4rem"
         :left "7vw"
-        :padding [[0 "2rem"]]
-        :background-color lite-grey}
+        :background-color lite-grey
+        :opacity 0.9}
        [:div.search-results
         [:li.active
          {:cursor :pointer

@@ -3,17 +3,15 @@
             [beicon.core :as rxt]
             [potok.core :as ptk]
 
-            [mdc-rum.core :as mdc]
-            [mdc-rum.components :as mdcc]
-
             [showrum.frontend.hooks :as hooks]
+            [showrum.frontend.material :as material]
             [showrum.frontend.presenter.events :as events]))
 
 (hx/defnc InputField [{store :store}]
   (let [state (rxt/to-atom store)
         term  (hooks/<-derive state :search/term)]
     [:div {:class "search-input"}
-     [mdcc/TextField
+     [material/TextField
       {:style       {:width "50rem"}
        :value       term
        :auto-focus  true
@@ -25,27 +23,29 @@
                       (let [term (-> e .-target .-value)]
                         (ptk/emit! store  (events/->SetSearchTerm term))))
        :name        "search"}
-      [mdcc/FloatingLabel {:input-name "search" :label "Search"}]]]))
+      [material/FloatingLabel {:input-name "search" :label "Search"}]]]))
 
 (hx/defnc ResultsList [{store :store}]
   (let [state (rxt/to-atom store)
-        term  (hooks/<-derive state :search/term)]
+        derive-fn (fn [s] (select-keys s [:search/term :search/results :search/result]))
+        {term :search/term
+         results :search/results
+         current-result :search/result} (hooks/<-derive state derive-fn)]
     (if (and term (not (empty? term)))
       [:div {:class "search-results"}
-       (let [results (hooks/<-derive state :search/results)]
          (if (seq results)
-           [mdc/unordered-list
-            (let [current-result (hooks/<-derive state :search/result)]
+           [:ul {:class "mdc-list"} 
               (for [[id [deck-id deck-title slide slide-title]]
                     (map-indexed (fn [i it] [i it]) results)]
-                [mdc/list-item
+                [:li
                  {:key            (str id deck-id slide)
-                  :class          (if (= id current-result) "active" "")
+                  :class          (str "mdc-list-item "
+                                       (when (= id current-result) "active"))
                   :on-mouse-enter #(ptk/emit! store (events/->SetActiveSearchResult id))
                   :on-mouse-leave #(ptk/emit! store (events/->SetActiveSearchResult nil))
                   :on-click       #(ptk/emit! store (events/->ActivateSearchResult id))}
-                 (str deck-title " - " slide-title)]))]
-           [:p "No results for \"" [:strong term] "\""]))])))
+                 (str deck-title " - " slide-title)])]
+           [:p "No results for \"" [:strong term] "\""])])))
 
 (hx/defnc Main [{store :store}]
   (let [state (rxt/to-atom store)

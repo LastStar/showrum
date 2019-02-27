@@ -14,14 +14,13 @@
 
 (defn ^:dev/after-load start []
   (dom/render
-   (hx/f [views/Page {:store @store}])
+   (hx/f [views/Page {:store store/main}])
    (. js/document (getElementById "container"))))
 
 (defn ^:export init []
-  (reset! store store/main)
   (router/start!
    routes/config
    {:default     :showrum/index
     :on-navigate (fn [name params query]
-                   (ptk/emit! @store (events/->RouteMatched name params query)))})
+                   (ptk/emit! store/main (events/->RouteMatched name params query)))})
   (start))
