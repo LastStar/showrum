@@ -3,10 +3,8 @@
             [beicon.core :as rxt]
             [potok.core :as ptk]
 
-            [mdc-rum.core :as mdc]
-            [mdc-rum.components :as mdcc]
-
             [showrum.frontend.hooks :as hooks]
+            [showrum.frontend.material :as material]
             [showrum.frontend.presenter.events :as events]
             [showrum.frontend.presenter.views.navigation :as navigation]
             [showrum.frontend.presenter.views.search :as search]
@@ -18,19 +16,22 @@
     [:div
      {:class "gist"
       :style {:margin "1rem auto" :width "66vw"}} ;FIXME: move to styles
-     [mdc/typo-headline-4 "No decks loaded. Please add uri for the gist."]
+     [:h4 {:class "mdc-typography--headline4"} "No decks loaded. Please add uri for the gist."]
      (when err
-       [mdc/typo-headline-5 {:style {:color :red}} (str "There was a " err)])
+       [:h5
+        {:class "mdc-typography--headline5"
+         :style {:color :red}}
+        (str "There was a " err)])
      [:form
       {:on-submit (fn [e]
                     (.preventDefault e)
                     (ptk/emit! store
                                (events/->InitializeGist
                                 (-> e .-target (aget "gist") .-value))))}
-      (mdcc/text-field {:style {:width "66vw"}} :gist "Gist URL")
+      (material/TextField {:name "gist" :style {:width "66vw"}} "Gist URL")
       [:div
-        {:style {:text-align :right}}]
-      (mdcc/button {} "Parse")]]))
+        {:style {:text-align :right}}
+        [material/Button {} "Parse"]]]]))
 
 (hx/defnc Footer [{:keys [store deck gist current-slide]}]
   (let [state                 (rxt/to-atom store)
@@ -64,9 +65,7 @@
     (if decks
       [:div
        [:div {:class "page"}
-        [navigation/Main {:store         store :slides slides :decks decks
-                          :current-slide current-slide}]
-        [search/Main {:store store}]
+        [navigation/Main {:store store}]
         [presentation/Main {:slides slides :current-slide current-slide}]
         [Footer {:store         store :deck deck :gist gist
                  :current-slide current-slide}]]]

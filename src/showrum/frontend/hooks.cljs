@@ -19,12 +19,14 @@
      (react/useEffect
       (fn []
         (let [id (gensym "<-derive")]
-          (add-watch a :use-in-atom
+          (add-watch a id
                      ;; update the react state on each change
                      (fn [_ _ _ v']
-                       (if-not (= v (f v')) (u (f v'))))))
-        ;; return a function to tell react hook how to unsubscribe
-        #(remove-watch a :use-in-atom))
+                       (let [d (f v')]
+                         (js/console.log v d (= v d))
+                         (if-not (= v d) (u d)))))
+          ;; return a function to tell react hook how to unsubscribe
+          #(remove-watch a id)))
       ;; pass in deps vector as an array
       (clj->js deps))
      ;; return value of useState on each run

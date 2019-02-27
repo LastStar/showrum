@@ -13,7 +13,7 @@
    {:title       "Showrum"
     :description "Showrum Presentation Software"
     :styles      ["button" "elevation" "layout-grid" "line-ripple" "list" "ripple" "select" "theme" "textfield" "typography"]
-    :scripts     ["js/mdc.js" "js/presenter.js"]}})
+    :scripts     ["js/presenter.js"]}})
 
 (defn release
   "Release new code"

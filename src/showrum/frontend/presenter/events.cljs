@@ -8,6 +8,8 @@
             [showrum.parser :as parser])
   (:import goog.events.EventType))
 
+(declare ->StartListenKeys)
+
 (defn- look-up [deck decks]
   (some #(and (= deck (:deck/order %)) %) decks))
 
@@ -31,13 +33,14 @@
                           slides))
             rows   (apply concat (map row-fn decks))
             slides-count (count (:deck/slides (look-up deck decks)))]
-        (js/console.log decks)
         (assoc state :db/decks decks :db/index rows :deck/slides-count slides-count))
       (assoc state :db/error "XHR error" :db/gist nil)))
   ptk/WatchEvent
   (watch [_ state _]
     (if gist-response
-      (rxt/just (->NavigateUrl)) (rxt/empty))))
+      (rxt/of (->NavigateUrl)
+              (->StartListenKeys))
+      (rxt/empty))))
 
 (defrecord InitializeGist [gist]
   ptk/UpdateEvent
@@ -220,6 +223,15 @@
       (rxt/just event)
       (rxt/empty))))
 
+(defrecord StartListenKeys []
+  ptk/WatchEvent
+  (watch [_ state _]
+    (js/console.log "started")
+    (let [interval 750
+          event-stream (rxt/from-event js/document EventType.KEYDOWN)
+          key-stream (rxt/throttle interval event-stream)]
+      (rxt/map #(->KeyPressed (.-keyCode %)) key-stream))))
+
 (deftype RouteMatched [name params query]
   ptk/UpdateEvent
   (update [_ state]
@@ -237,11 +249,3 @@
           (rxt/empty)))
       :showrum/index
       (rxt/empty))))
-
-(defrecord StartListenKeys []
-  ptk/WatchEvent
-  (watch [_ state _]
-    (let [interval 750
-          event-stream (rxt/from-event js/document EventType.KEYDOWN)
-          key-stream (rxt/throttle interval event-stream)]
-      (rxt/map #(->KeyPressed (.-keyCode %)) key-stream))))

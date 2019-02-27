@@ -18,9 +18,7 @@
 
  :builds
  {:presenter {:target           :browser
-              :modules          {:mdc       {:entries [mdc-rum.core]}
-                                 :presenter {:entries    [showrum.frontend.presenter.app]
-                                             :depends-on #{:mdc}}}
+              :modules          {:presenter {:entries    [showrum.frontend.presenter.app]}}
               :output-dir       "public/js"
               :asset-path       "/js"
               :devtools         {:http-root "public"
