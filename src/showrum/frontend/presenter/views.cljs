@@ -67,14 +67,14 @@
        [:div {:class "page"}
         [navigation/Main {:store store}]
         [presentation/Main {:slides slides :current-slide current-slide}]
-        [Footer {:store         store :deck deck :gist gist
+        [search/Main {:store store}]
+        [Footer {:store store :deck deck :gist gist
                  :current-slide current-slide}]]]
       [Loading])))
 
 (hx/defnc Page [{store :store}]
   (let [state (rxt/to-atom store)
         gist  (hooks/<-derive state :db/gist)]
-
     [:div
      (if gist
        [Decks {:store store :gist gist}]
