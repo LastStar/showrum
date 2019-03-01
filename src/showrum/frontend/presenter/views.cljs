@@ -54,28 +54,23 @@
   [:div {:class "loading"}
    [:h2 "Initializing DB"]])
 
-(hx/defnc Decks [{store :store gist :gist}]
-  (let [state                          (rxt/to-atom store)
-        derive-fn                      #(select-keys % [:db/decks :deck/current :slide/current])
-        {decks         :db/decks
-         current-deck  :deck/current
-         current-slide :slide/current} (hooks/<-derive state derive-fn)
-        deck                           (and decks (some #(and (= current-deck (:deck/order %)) %) decks))
-        slides                         (:deck/slides deck)]
-    (if decks
-      [:div
-       [:div {:class "page"}
-        [navigation/Main {:store store}]
-        [presentation/Main {:slides slides :current-slide current-slide}]
-        [search/Main {:store store}]
-        [Footer {:store store :deck deck :gist gist
-                 :current-slide current-slide}]]]
-      [Loading])))
-
 (hx/defnc Page [{store :store}]
-  (let [state (rxt/to-atom store)
-        gist  (hooks/<-derive state :db/gist)]
+  (let [state         (rxt/to-atom store)
+        gist          (hooks/<-derive state :db/gist)
+        decks         (hooks/<-derive state :db/decks)
+        current-deck  (hooks/<-derive state :deck/current)
+        current-slide (hooks/<-derive state :slide/current)
+        deck          (and decks (some #(and (= current-deck (:deck/order %)) %) decks))
+        slides        (:deck/slides deck)]
     [:div
      (if gist
-       [Decks {:store store :gist gist}]
+       (if decks
+         [:div
+          [:div {:class "page"}
+           [navigation/Main {:store store}]
+           [presentation/Main {:slides slides :current-slide current-slide}]
+           [search/Main {:store store}]
+           [Footer {:store         store :deck deck :gist gist
+                    :current-slide current-slide}]]]
+         [Loading])
        [GistForm {:store store}])]))

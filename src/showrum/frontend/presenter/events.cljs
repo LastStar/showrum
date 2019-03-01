@@ -227,24 +227,23 @@
 (defrecord StartListenKeys []
   ptk/WatchEvent
   (watch [_ state _]
-    (js/console.log "started")
-    (let [interval 750
+    (let [interval     750
           event-stream (rxt/from-event js/document EventType.KEYDOWN)
-          key-stream (rxt/throttle interval event-stream)]
+          key-stream   (rxt/throttle interval event-stream)]
       (rxt/map #(->KeyPressed (.-keyCode %)) key-stream))))
 
 (deftype RouteMatched [name params query]
   ptk/UpdateEvent
   (update [_ state]
-    (let [deck (js/parseInt (:deck params))
+    (let [deck  (js/parseInt (:deck params))
           slide (js/parseInt (:slide params))]
       (assoc state :slide/current slide :deck/current deck)))
   ptk/WatchEvent
   (watch [_ {gist :db/gist} _]
     (case name
       :showrum/presentation
-      (let [gist-from-url  (base64/decodeString
-                            (js/decodeURIComponent (:gist params)))]
+      (let [gist-from-url (base64/decodeString
+                           (js/decodeURIComponent (:gist params)))]
         (if-not (= gist-from-url gist)
           (rxt/just (->InitializeGist gist-from-url))
           (rxt/empty)))
